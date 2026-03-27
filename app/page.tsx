@@ -1,65 +1,83 @@
-import Image from "next/image";
+import { getLatestArticles, getArticlesByCategory } from "@/lib/firestore";
+import ArticleCard from "@/components/ArticleCard";
+import Header from "@/components/Header";
 
-export default function Home() {
+export const revalidate = 3600;
+
+const CATEGORIES = ["全部", "経済", "政治", "社会", "国際", "生活"] as const;
+type Category = (typeof CATEGORIES)[number];
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
+  const categoryParam = typeof params.category === "string" ? params.category : "全部";
+  const activeCategory: Category = (CATEGORIES as readonly string[]).includes(categoryParam)
+    ? (categoryParam as Category)
+    : "全部";
+
+  const articles =
+    activeCategory === "全部"
+      ? await getLatestArticles(12)
+      : await getArticlesByCategory(activeCategory, 12);
+
+  const today = new Date().toLocaleDateString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+    <>
+      <Header />
+      <main className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="mb-6">
+            <h1 className="text-xl font-bold text-gray-900">
+              今日のニュース
+              <span className="text-sm font-normal text-gray-400 ml-2">{today}</span>
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              毎朝6時にAIが自動収集・解説 — 生活への影響までまるわかり
+            </p>
+          </div>
+
+          {/* Category filter */}
+          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+            {CATEGORIES.map((cat) => (
+              <a
+                key={cat}
+                href={cat === "全部" ? "/" : `/?category=${cat}`}
+                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  activeCategory === cat
+                    ? "bg-gray-900 text-white"
+                    : "bg-white text-gray-600 border border-gray-200 hover:border-gray-400"
+                }`}
+              >
+                {cat}
+              </a>
+            ))}
+          </div>
+
+          {/* Article grid */}
+          {articles.length === 0 ? (
+            <div className="text-center py-20 text-gray-400">
+              <div className="text-5xl mb-4">📭</div>
+              <p className="text-lg font-medium">まだ記事がありません</p>
+              <p className="text-sm mt-2">毎朝6時に自動更新されます</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {articles.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
+          )}
         </div>
       </main>
-    </div>
+    </>
   );
 }
