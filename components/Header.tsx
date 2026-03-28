@@ -33,7 +33,7 @@ export default function Header() {
             className="text-[11px] tracking-wider hidden sm:inline"
             style={{ color: "var(--text-muted)" }}
           >
-            バカでもわかるニュース
+            やわらかニュース
           </span>
         </div>
       </Link>

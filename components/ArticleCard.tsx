@@ -29,7 +29,9 @@ export default function ArticleCard({ article }: { article: Article }) {
     bg: "rgba(255,255,255,0.06)",
     text: "#888",
   };
-  const summary = (article.three_points || article.fact || "").split("\n")[0];
+  const summary = (article.three_points || article.fact || "")
+    .replace(/<[^>]*>/g, "")
+    .split("\n")[0];
 
   return (
     <Link href={`/article/${article.id}`} className="block group">
