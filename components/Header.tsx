@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-const NAV_CATEGORIES = ["経済", "政治", "社会", "国際", "生活"] as const;
-
 export default function Header() {
   const today = new Date().toLocaleDateString("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -55,29 +53,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* カテゴリナビ */}
-      <div
-        className="max-w-6xl mx-auto px-5 pb-2.5 flex gap-1 overflow-x-auto"
-        style={{ borderTop: "1px solid var(--border)" }}
-      >
-        <Link
-          href="/"
-          className="flex-shrink-0 px-3 py-1.5 text-[11px] font-medium rounded-full transition-colors hover:text-[#f5c842]"
-          style={{ color: "var(--text-muted)" }}
-        >
-          すべて
-        </Link>
-        {NAV_CATEGORIES.map((cat) => (
-          <Link
-            key={cat}
-            href={`/?category=${cat}`}
-            className="flex-shrink-0 px-3 py-1.5 text-[11px] font-medium rounded-full transition-colors hover:text-[#f5c842]"
-            style={{ color: "var(--text-muted)" }}
-          >
-            {cat}
-          </Link>
-        ))}
-      </div>
     </header>
   );
 }
