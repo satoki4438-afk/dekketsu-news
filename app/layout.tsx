@@ -15,13 +15,13 @@ const bebasNeue = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
-  title: "で、結局どうなの？ | バカでもわかるニュース解説",
+  title: "で、どうなるの？ | やわらかニュース",
   description:
-    "毎朝6時にAIが自動収集。日本人の生活・家計に影響するニュースを中学生でもわかる言葉で解説します。",
+    "毎朝6時にAIが自動収集。日本人の生活・家計に影響するニュースをやさしい言葉で解説します。",
   openGraph: {
-    title: "で、結局どうなの？",
-    description: "毎朝6時にAIが自動収集。バカでもわかるニュース解説メディア",
-    siteName: "で、結局どうなの？",
+    title: "で、どうなるの？",
+    description: "毎朝6時にAIが自動収集。やわらかニュース解説メディア",
+    siteName: "で、どうなるの？",
     locale: "ja_JP",
     type: "website",
   },

@@ -355,7 +355,7 @@ export default function ArticleFull({ article }: { article: Article }) {
         <div className="mb-7">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-xl font-black" style={{ color: "var(--text)" }}>
-              💥 で、うちはどうなるの？
+              💥 で、どうなるの？
             </h2>
             <span
               className="text-white text-[11px] px-2 py-0.5 rounded-[4px] font-bold"

@@ -4,6 +4,7 @@ import { getArticleById, getRelatedArticles } from "@/lib/firestore";
 import ArticleFull from "@/components/ArticleFull";
 import ArticleCard from "@/components/ArticleCard";
 import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -19,7 +20,7 @@ export async function generateMetadata({
 
   const desc = (article.three_points || article.fact || "").split("\n")[0];
   return {
-    title: `${article.title} | で、結局どうなの？`,
+    title: `${article.title} | で、どうなるの？`,
     description: desc,
     openGraph: {
       title: article.title,
@@ -43,7 +44,8 @@ export default async function ArticlePage({
     <>
       <Header />
       <main className="min-h-screen">
-        <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[1fr_280px] lg:gap-8 lg:items-start">
+        <div className="min-w-0">
           {/* パンくず */}
           <nav className="mb-6 text-sm" style={{ color: "var(--text-muted)" }}>
             <Link
@@ -123,6 +125,8 @@ export default async function ArticlePage({
               ← トップに戻る
             </Link>
           </div>
+        </div>
+        <Sidebar />
         </div>
       </main>
     </>

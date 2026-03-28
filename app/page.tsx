@@ -1,6 +1,7 @@
 import { getLatestArticles, getArticlesByCategory } from "@/lib/firestore";
 import ArticleCard from "@/components/ArticleCard";
 import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 
 export const revalidate = 3600;
 
@@ -37,7 +38,8 @@ export default async function Home({
     <>
       <Header />
       <main className="min-h-screen">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[1fr_280px] lg:gap-8 lg:items-start">
+        <div>
           <div className="mb-6">
             <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
               今日のニュース
@@ -97,6 +99,8 @@ export default async function Home({
               ))}
             </div>
           )}
+        </div>
+        <Sidebar />
         </div>
       </main>
     </>
