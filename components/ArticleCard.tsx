@@ -58,6 +58,14 @@ export default function ArticleCard({ article }: { article: Article }) {
             >
               {article.title}
             </h2>
+            {article.subtitle && (
+              <p
+                className="text-[11px] mt-0.5 line-clamp-1"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {article.subtitle}
+              </p>
+            )}
           </div>
         </div>
         <p

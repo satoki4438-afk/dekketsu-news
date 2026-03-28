@@ -6,6 +6,7 @@ const client = new Anthropic({
 
 export interface GeneratedArticle {
   title: string;
+  subtitle: string;
   category: string;
   emoji: string;
   publishedAt: string;
@@ -55,7 +56,8 @@ const SYSTEM_PROMPT = `あなたは「で、結局どうなの？」というニ
 
 [
   {
-    "title": "キャッチーで中学生でもわかるタイトル（30文字以内）",
+    "title": "キャッチーなタイトル（小学生向け・30文字以内）",
+    "subtitle": "ファクトベースのサブタイトル（何が起きたか一文で・40文字以内）",
     "category": "経済 | 政治 | 社会 | 国際 | 生活",
     "emoji": "記事に合う絵文字1つ",
     "publishedAt": "ISO8601形式（今日の日本時間6:00）",

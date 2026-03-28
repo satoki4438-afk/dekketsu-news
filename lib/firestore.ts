@@ -16,6 +16,7 @@ const db = getFirestore();
 export interface Article {
   id: string;
   title: string;
+  subtitle?: string;
   category: string;
   emoji: string;
   publishedAt: Timestamp;

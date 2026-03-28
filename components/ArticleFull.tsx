@@ -99,12 +99,22 @@ export default function ArticleFull({ article }: { article: Article }) {
 
         <div className="flex items-start gap-4 mb-4">
           <span className="text-5xl flex-shrink-0">{article.emoji}</span>
-          <h1
-            className="text-2xl sm:text-3xl font-black leading-tight tracking-tight"
-            style={{ color: "var(--text)" }}
-          >
-            {stripHtml(article.title)}
-          </h1>
+          <div>
+            <h1
+              className="text-2xl sm:text-3xl font-black leading-tight tracking-tight"
+              style={{ color: "var(--text)" }}
+            >
+              {stripHtml(article.title)}
+            </h1>
+            {article.subtitle && (
+              <p
+                className="mt-2 text-[14px] leading-relaxed"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {stripHtml(article.subtitle)}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* 元記事出典 */}
