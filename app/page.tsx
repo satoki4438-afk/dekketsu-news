@@ -24,7 +24,7 @@ export default async function Home({
   const articles =
     activeCategory === "全部"
       ? await getLatestArticles(12)
-      : await getArticlesByCategory(activeCategory, 12);
+      : await getArticlesByCategory(activeCategory, 12).catch(() => []);
 
   const today = new Date().toLocaleDateString("ja-JP", {
     timeZone: "Asia/Tokyo",

@@ -37,7 +37,7 @@ export default async function ArticlePage({
   const article = await getArticleById(id);
   if (!article) notFound();
 
-  const related = await getRelatedArticles(article.category, article.id, 3);
+  const related = await getRelatedArticles(article.category, article.id, 3).catch(() => []);
 
   return (
     <>
