@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import type { Article } from "@/lib/firestore";
 import { Timestamp } from "firebase-admin/firestore";

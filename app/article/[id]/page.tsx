@@ -80,25 +80,10 @@ export default async function ArticlePage({
                   <Link
                     key={r.id}
                     href={`/article/${r.id}`}
-                    className="flex items-center gap-3 border rounded-lg px-4 py-3.5 text-[13px] transition-all"
+                    className="flex items-center gap-3 border border-[rgba(255,255,255,0.08)] rounded-lg px-4 py-3.5 text-[13px] transition-all hover:border-[rgba(245,200,66,0.3)] hover:bg-[#1e1e1e]"
                     style={{
                       background: "var(--surface)",
-                      borderColor: "var(--border)",
                       color: "var(--text)",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLAnchorElement).style.borderColor =
-                        "rgba(245,200,66,0.3)";
-                      (
-                        e.currentTarget as HTMLAnchorElement
-                      ).style.background = "var(--surface2)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLAnchorElement).style.borderColor =
-                        "var(--border)";
-                      (
-                        e.currentTarget as HTMLAnchorElement
-                      ).style.background = "var(--surface)";
                     }}
                   >
                     <span
