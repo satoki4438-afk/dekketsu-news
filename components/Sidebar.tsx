@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { getLatestArticles } from "@/lib/firestore";
+import { getTopArticlesByViews } from "@/lib/firestore";
 
 export default async function Sidebar() {
-  const articles = await getLatestArticles(10).catch(() => []);
+  const articles = await getTopArticlesByViews(5).catch(() => []);
 
   return (
     <aside className="flex flex-col gap-5 lg:sticky lg:top-[110px]">
@@ -15,7 +15,7 @@ export default async function Sidebar() {
           className="text-[11px] font-bold tracking-[2px] mb-3"
           style={{ color: "var(--text-muted)" }}
         >
-          TODAY&apos;S NEWS
+          よく読まれてる
         </h3>
         <div className="flex flex-col">
           {articles.length === 0 ? (

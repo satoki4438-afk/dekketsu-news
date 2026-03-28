@@ -5,6 +5,7 @@ import ArticleFull from "@/components/ArticleFull";
 import ArticleCard from "@/components/ArticleCard";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import ViewTracker from "@/components/ViewTracker";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -59,6 +60,7 @@ export default async function ArticlePage({
             <span style={{ color: "var(--text)" }}>{article.title.replace(/<[^>]*>/g, "")}</span>
           </nav>
 
+          <ViewTracker articleId={article.id} />
           {/* 記事本文 */}
           <ArticleFull article={article} />
 

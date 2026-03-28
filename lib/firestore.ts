@@ -1,5 +1,5 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { getFirestore, Timestamp, FieldValue } from "firebase-admin/firestore";
 
 if (!getApps().length) {
   initializeApp({
@@ -18,6 +18,7 @@ export interface Article {
   title: string;
   subtitle?: string;
   category: string;
+  view_count?: number;
   emoji: string;
   publishedAt: Timestamp;
   // 元記事
@@ -62,6 +63,7 @@ export async function saveArticles(
     const ref = db.collection("articles").doc();
     const data: Omit<Article, "id"> = {
       ...rest,
+      view_count: 0,
       publishedAt: Timestamp.fromDate(new Date(publishedAt)),
       createdAt: Timestamp.now(),
     };
@@ -119,6 +121,21 @@ export async function getRelatedArticles(
     .map((doc) => ({ id: doc.id, ...doc.data() } as Article))
     .filter((a) => a.id !== excludeId)
     .slice(0, limit);
+}
+
+export async function incrementViewCount(id: string): Promise<void> {
+  await db.collection("articles").doc(id).update({
+    view_count: FieldValue.increment(1),
+  });
+}
+
+export async function getTopArticlesByViews(limit = 5): Promise<Article[]> {
+  const snapshot = await db
+    .collection("articles")
+    .orderBy("view_count", "desc")
+    .limit(limit)
+    .get();
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
 }
 
 export async function getRecentArticleTitles(): Promise<string[]> {
