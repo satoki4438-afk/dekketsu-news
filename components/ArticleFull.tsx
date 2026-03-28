@@ -32,6 +32,10 @@ const CATEGORY_COLORS: Record<
   },
 };
 
+function stripHtml(str: string): string {
+  return str.replace(/<[^>]*>/g, "");
+}
+
 function formatDate(ts: Timestamp | { _seconds: number }): string {
   const date =
     ts instanceof Timestamp
@@ -67,7 +71,7 @@ export default function ArticleFull({ article }: { article: Article }) {
     text: "#888",
     border: "rgba(255,255,255,0.2)",
   };
-  const threePoints = article.three_points || article.fact || "";
+  const threePoints = stripHtml(article.three_points || article.fact || "");
 
   return (
     <article>
@@ -99,7 +103,7 @@ export default function ArticleFull({ article }: { article: Article }) {
             className="text-2xl sm:text-3xl font-black leading-tight tracking-tight"
             style={{ color: "var(--text)" }}
           >
-            {article.title}
+            {stripHtml(article.title)}
           </h1>
         </div>
 
@@ -119,10 +123,10 @@ export default function ArticleFull({ article }: { article: Article }) {
                   className="hover:underline"
                   style={{ color: "var(--accent)" }}
                 >
-                  {article.source_name}
+                  {stripHtml(article.source_name)}
                 </a>
               ) : (
-                article.source_name
+                stripHtml(article.source_name)
               )}
             </span>
           )}
@@ -179,14 +183,14 @@ export default function ArticleFull({ article }: { article: Article }) {
               日本のニュースはこう言ってる
             </div>
             <p className="text-[13px] leading-relaxed" style={{ color: "#ccc" }}>
-              {article.japan_view}
+              {stripHtml(article.japan_view)}
             </p>
             {article.japan_source && (
               <div
                 className="mt-2 text-[11px]"
                 style={{ color: "var(--text-muted)" }}
               >
-                出典：{article.japan_source}
+                出典：{stripHtml(article.japan_source)}
               </div>
             )}
             {article.japan_tone && (
@@ -197,7 +201,7 @@ export default function ArticleFull({ article }: { article: Article }) {
                   color: "var(--jp-color)",
                 }}
               >
-                {article.japan_tone}
+                {stripHtml(article.japan_tone)}
               </span>
             )}
           </div>
@@ -226,14 +230,14 @@ export default function ArticleFull({ article }: { article: Article }) {
                 className="text-[13px] leading-relaxed"
                 style={{ color: "#ccc" }}
               >
-                {article.world_view}
+                {stripHtml(article.world_view)}
               </p>
               {article.world_source && (
                 <div
                   className="mt-2 text-[11px]"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  出典：{article.world_source}
+                  出典：{stripHtml(article.world_source)}
                 </div>
               )}
               {article.world_tone && (
@@ -244,7 +248,7 @@ export default function ArticleFull({ article }: { article: Article }) {
                     color: "var(--world-color)",
                   }}
                 >
-                  {article.world_tone}
+                  {stripHtml(article.world_tone)}
                 </span>
               )}
             </div>
@@ -267,7 +271,7 @@ export default function ArticleFull({ article }: { article: Article }) {
             >
               ⚖️ ぶっちゃけどっちが正しい？
             </span>
-            {article.verdict || article.gap_analysis}
+            {stripHtml(article.verdict || article.gap_analysis || "")}
           </div>
         )}
       </div>
@@ -304,7 +308,7 @@ export default function ArticleFull({ article }: { article: Article }) {
                       >
                         ↑
                       </span>
-                      <span style={{ color: "var(--text)" }}>{w}</span>
+                      <span style={{ color: "var(--text)" }}>{stripHtml(w)}</span>
                     </div>
                   ))}
                 </div>
@@ -336,7 +340,7 @@ export default function ArticleFull({ article }: { article: Article }) {
                       >
                         ↓
                       </span>
-                      <span style={{ color: "var(--text)" }}>{l}</span>
+                      <span style={{ color: "var(--text)" }}>{stripHtml(l)}</span>
                     </div>
                   ))}
                 </div>
@@ -378,13 +382,13 @@ export default function ArticleFull({ article }: { article: Article }) {
                     className="font-bold text-[13px] mb-0.5"
                     style={{ color: "var(--text)" }}
                   >
-                    {impact.title}
+                    {stripHtml(impact.title)}
                   </div>
                   <div
                     className="text-[13px] leading-relaxed"
                     style={{ color: "var(--text-muted)" }}
                   >
-                    {impact.body}
+                    {stripHtml(impact.body)}
                   </div>
                 </div>
               </div>
@@ -422,7 +426,7 @@ export default function ArticleFull({ article }: { article: Article }) {
                   >
                     →
                   </span>
-                  <span style={{ color: "var(--text)" }}>{action}</span>
+                  <span style={{ color: "var(--text)" }}>{stripHtml(action)}</span>
                 </li>
               ))}
             </ul>

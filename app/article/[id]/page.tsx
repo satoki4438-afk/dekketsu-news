@@ -54,7 +54,7 @@ export default async function ArticlePage({
               トップ
             </Link>
             <span className="mx-2">/</span>
-            <span style={{ color: "var(--text)" }}>{article.title}</span>
+            <span style={{ color: "var(--text)" }}>{article.title.replace(/<[^>]*>/g, "")}</span>
           </nav>
 
           {/* 記事本文 */}
