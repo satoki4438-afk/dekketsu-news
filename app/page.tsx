@@ -38,8 +38,8 @@ export default async function Home({
     <>
       <Header />
       <main className="min-h-screen">
-        <div className="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[1fr_280px] lg:gap-8 lg:items-start">
-        <div>
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          {/* 見出し・カテゴリフィルター（フル幅） */}
           <div className="mb-6">
             <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
               今日のニュース
@@ -54,8 +54,6 @@ export default async function Home({
               毎朝6時にAIが自動収集・解説 — 生活への影響までまるわかり
             </p>
           </div>
-
-          {/* カテゴリフィルター */}
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {CATEGORIES.map((cat) => (
               <a
@@ -82,25 +80,28 @@ export default async function Home({
             ))}
           </div>
 
-          {/* 記事グリッド */}
-          {articles.length === 0 ? (
-            <div
-              className="text-center py-20"
-              style={{ color: "var(--text-muted)" }}
-            >
-              <div className="text-5xl mb-4">📭</div>
-              <p className="text-lg font-medium">まだ記事がありません</p>
-              <p className="text-sm mt-2">毎朝6時に自動更新されます</p>
+          {/* 記事グリッド ＋ サイドバー */}
+          <div className="lg:grid lg:grid-cols-[1fr_280px] lg:gap-8 lg:items-start">
+            <div>
+              {articles.length === 0 ? (
+                <div
+                  className="text-center py-20"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  <div className="text-5xl mb-4">📭</div>
+                  <p className="text-lg font-medium">まだ記事がありません</p>
+                  <p className="text-sm mt-2">毎朝6時に自動更新されます</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {articles.map((article) => (
+                    <ArticleCard key={article.id} article={article} />
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {articles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
-          )}
-        </div>
-        <Sidebar />
+            <Sidebar />
+          </div>
         </div>
       </main>
     </>

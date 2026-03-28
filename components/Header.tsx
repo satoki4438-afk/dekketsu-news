@@ -25,10 +25,11 @@ export default function Header() {
           <div className="flex items-center gap-3">
             <span
               style={{
-                fontFamily: "var(--font-bebas-neue), sans-serif",
-                fontSize: "32px",
+                fontFamily: "var(--font-noto-sans-jp), sans-serif",
+                fontWeight: 900,
+                fontSize: "38px",
                 color: "var(--accent)",
-                letterSpacing: "3px",
+                letterSpacing: "1px",
                 lineHeight: 1,
               }}
             >
