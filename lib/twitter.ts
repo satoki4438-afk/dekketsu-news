@@ -22,7 +22,7 @@ function buildTweetText(article: Article, baseUrl: string): string {
     .join(" ");
 
   // Tweet: emoji + title + fact1行 + URL + hashtags
-  const factOneLine = article.fact.split("\n")[0].slice(0, 50);
+  const factOneLine = (article.three_points || article.fact || "").split("\n")[0].slice(0, 50);
   const tweet = `${article.emoji}【${article.title}】\n\n${factOneLine}...\n\n続きはこちら👇\n${url}\n\n${hashtags} #でけっきょく`;
 
   // Twitter limit: 280 chars

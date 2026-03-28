@@ -4,7 +4,22 @@
   --font-sans: var(--font-noto-sans-jp), ui-sans-serif, system-ui, sans-serif;
 }
 
+:root {
+  --bg: #0d0d0d;
+  --surface: #161616;
+  --surface2: #1e1e1e;
+  --accent: #f5c842;
+  --accent2: #e8523a;
+  --text: #f0ede8;
+  --text-muted: #888;
+  --jp-color: #4a9eff;
+  --world-color: #ff6b6b;
+  --border: rgba(255, 255, 255, 0.08);
+}
+
 body {
-  background: #f9fafb;
-  color: #111827;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  line-height: 1.7;
 }

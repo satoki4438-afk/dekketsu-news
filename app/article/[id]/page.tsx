@@ -17,12 +17,13 @@ export async function generateMetadata({
   const article = await getArticleById(id);
   if (!article) return { title: "記事が見つかりません" };
 
+  const desc = (article.three_points || article.fact || "").split("\n")[0];
   return {
     title: `${article.title} | で、結局どうなの？`,
-    description: article.fact.split("\n")[0],
+    description: desc,
     openGraph: {
       title: article.title,
-      description: article.fact.split("\n")[0],
+      description: desc,
     },
   };
 }
@@ -41,40 +42,98 @@ export default async function ArticlePage({
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Breadcrumb */}
-          <nav className="mb-6 text-sm text-gray-400">
-            <Link href="/" className="hover:text-gray-600 transition-colors">
+      <main className="min-h-screen">
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          {/* パンくず */}
+          <nav className="mb-6 text-sm" style={{ color: "var(--text-muted)" }}>
+            <Link
+              href="/"
+              className="transition-colors hover:text-[#f0ede8]"
+              style={{ color: "var(--text-muted)" }}
+            >
               トップ
             </Link>
             <span className="mx-2">/</span>
-            <span className="text-gray-600">{article.title}</span>
+            <span style={{ color: "var(--text)" }}>{article.title}</span>
           </nav>
 
-          {/* Article */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 mb-8">
-            <ArticleFull article={article} />
-          </div>
+          {/* 記事本文 */}
+          <ArticleFull article={article} />
 
-          {/* Related articles */}
+          {/* 関連記事 */}
           {related.length > 0 && (
-            <section>
-              <h2 className="font-bold text-gray-700 mb-4 flex items-center gap-2">
-                <span>📌</span> 関連記事（{article.category}）
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <section className="mt-10">
+              <div className="flex items-center gap-2 mb-4">
+                <h2
+                  className="text-[13px] font-bold tracking-[2px]"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  📎 つながるニュース
+                </h2>
+                <div
+                  className="flex-1 h-px"
+                  style={{ background: "var(--border)" }}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
                 {related.map((r) => (
-                  <ArticleCard key={r.id} article={r} />
+                  <Link
+                    key={r.id}
+                    href={`/article/${r.id}`}
+                    className="flex items-center gap-3 border rounded-lg px-4 py-3.5 text-[13px] transition-all"
+                    style={{
+                      background: "var(--surface)",
+                      borderColor: "var(--border)",
+                      color: "var(--text)",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLAnchorElement).style.borderColor =
+                        "rgba(245,200,66,0.3)";
+                      (
+                        e.currentTarget as HTMLAnchorElement
+                      ).style.background = "var(--surface2)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLAnchorElement).style.borderColor =
+                        "var(--border)";
+                      (
+                        e.currentTarget as HTMLAnchorElement
+                      ).style.background = "var(--surface)";
+                    }}
+                  >
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-[3px] flex-shrink-0"
+                      style={{
+                        background: "rgba(255,255,255,0.06)",
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      {r.category}
+                    </span>
+                    <span className="line-clamp-1">{r.title}</span>
+                  </Link>
                 ))}
               </div>
             </section>
           )}
 
-          <div className="mt-8 text-center">
+          <div
+            className="mt-10 pt-5 border-t text-[11px] text-center leading-relaxed"
+            style={{
+              borderColor: "var(--border)",
+              color: "var(--text-muted)",
+            }}
+          >
+            このサイトは公開情報をもとにAIが解説を生成しています。
+            <br />
+            投資判断等は自己責任でお願いします。
+          </div>
+
+          <div className="mt-6 text-center">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+              className="inline-flex items-center gap-2 text-sm transition-colors hover:text-[#f0ede8]"
+              style={{ color: "var(--text-muted)" }}
             >
               ← トップに戻る
             </Link>

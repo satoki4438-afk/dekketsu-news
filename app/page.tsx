@@ -13,8 +13,11 @@ export default async function Home({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const categoryParam = typeof params.category === "string" ? params.category : "全部";
-  const activeCategory: Category = (CATEGORIES as readonly string[]).includes(categoryParam)
+  const categoryParam =
+    typeof params.category === "string" ? params.category : "全部";
+  const activeCategory: Category = (
+    CATEGORIES as readonly string[]
+  ).includes(categoryParam)
     ? (categoryParam as Category)
     : "全部";
 
@@ -33,38 +36,56 @@ export default async function Home({
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen">
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="mb-6">
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
               今日のニュース
-              <span className="text-sm font-normal text-gray-400 ml-2">{today}</span>
+              <span
+                className="text-sm font-normal ml-2"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {today}
+              </span>
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
               毎朝6時にAIが自動収集・解説 — 生活への影響までまるわかり
             </p>
           </div>
 
-          {/* Category filter */}
+          {/* カテゴリフィルター */}
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {CATEGORIES.map((cat) => (
               <a
                 key={cat}
                 href={cat === "全部" ? "/" : `/?category=${cat}`}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors border"
+                style={
                   activeCategory === cat
-                    ? "bg-gray-900 text-white"
-                    : "bg-white text-gray-600 border border-gray-200 hover:border-gray-400"
-                }`}
+                    ? {
+                        background: "var(--accent)",
+                        color: "#0d0d0d",
+                        borderColor: "var(--accent)",
+                        fontWeight: 700,
+                      }
+                    : {
+                        background: "var(--surface)",
+                        color: "var(--text-muted)",
+                        borderColor: "var(--border)",
+                      }
+                }
               >
                 {cat}
               </a>
             ))}
           </div>
 
-          {/* Article grid */}
+          {/* 記事グリッド */}
           {articles.length === 0 ? (
-            <div className="text-center py-20 text-gray-400">
+            <div
+              className="text-center py-20"
+              style={{ color: "var(--text-muted)" }}
+            >
               <div className="text-5xl mb-4">📭</div>
               <p className="text-lg font-medium">まだ記事がありません</p>
               <p className="text-sm mt-2">毎朝6時に自動更新されます</p>
