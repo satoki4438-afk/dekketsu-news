@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import type { Article } from "@/lib/firestore";
 import { Timestamp } from "firebase-admin/firestore";
@@ -36,23 +34,7 @@ export default function ArticleCard({ article }: { article: Article }) {
   return (
     <Link href={`/article/${article.id}`} className="block group">
       <div
-        className="rounded-xl p-5 transition-all duration-200 h-full flex flex-col border"
-        style={{
-          background: "var(--surface)",
-          borderColor: "var(--border)",
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLDivElement).style.borderColor =
-            "rgba(245,200,66,0.3)";
-          (e.currentTarget as HTMLDivElement).style.background =
-            "var(--surface2)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLDivElement).style.borderColor =
-            "var(--border)";
-          (e.currentTarget as HTMLDivElement).style.background =
-            "var(--surface)";
-        }}
+        className="rounded-xl p-5 transition-all duration-200 h-full flex flex-col border border-[rgba(255,255,255,0.08)] bg-[#161616] hover:border-[rgba(245,200,66,0.3)] hover:bg-[#1e1e1e]"
       >
         <div className="flex items-start gap-3 mb-3">
           <span className="text-3xl flex-shrink-0">{article.emoji}</span>
