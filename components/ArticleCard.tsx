@@ -24,6 +24,8 @@ function formatDate(ts: Timestamp | { _seconds: number }): string {
   });
 }
 
+const cleanText = (text: string) => text?.replace(/<cite[^>]*>|<\/cite>/g, '') ?? '';
+
 export default function ArticleCard({ article }: { article: Article }) {
   const color = CATEGORY_COLORS[article.category] ?? {
     bg: "rgba(255,255,255,0.06)",
@@ -56,14 +58,14 @@ export default function ArticleCard({ article }: { article: Article }) {
               className="text-base font-bold leading-snug line-clamp-2 transition-colors group-hover:text-[#f5c842]"
               style={{ color: "var(--text)" }}
             >
-              {article.title}
+              {cleanText(article.title)}
             </h2>
             {article.subtitle && (
               <p
                 className="text-[12px] mt-1 line-clamp-2 leading-snug"
                 style={{ color: "var(--text-muted)" }}
               >
-                {article.subtitle}
+                {cleanText(article.subtitle)}
               </p>
             )}
           </div>
