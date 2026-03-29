@@ -138,15 +138,15 @@ export async function getTopArticlesByViews(limit = 5): Promise<Article[]> {
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
 }
 
-export async function getRecentArticleTitles(): Promise<string[]> {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-
+export async function getRecentArticleTitles(limit: number): Promise<string[]> {
   const snapshot = await db
     .collection("articles")
-    .where("publishedAt", ">=", Timestamp.fromDate(yesterday))
     .orderBy("publishedAt", "desc")
+    .limit(limit)
     .get();
 
-  return snapshot.docs.map((doc) => doc.data().title as string);
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return (data.subtitle ?? data.title) as string;
+  });
 }

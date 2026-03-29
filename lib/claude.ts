@@ -107,7 +107,7 @@ const SYSTEM_PROMPT = `あなたは「やわらかニュース」の記事ライ
 ]`;
 
 export async function generateArticles(
-  recentTitles: string[] = []
+  avoidTopics: string = ""
 ): Promise<GeneratedArticle[]> {
   const today = new Date().toLocaleDateString("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -116,12 +116,7 @@ export async function generateArticles(
     day: "numeric",
   });
 
-  const excludeNote =
-    recentTitles.length > 0
-      ? `\n\n昨日取り上げたトピック（除外してください）：\n${recentTitles.map((t) => `- ${t}`).join("\n")}`
-      : "";
-
-  const userMessage = `今日（${today}）の日本および世界のニュースをweb_searchで検索し、選定ルールに従って3〜6本のニュースを選んで解説してください。${excludeNote}
+  const userMessage = `今日（${today}）の日本および世界のニュースをweb_searchで検索し、選定ルールに従って最大15本のニュースを選んで解説してください。${avoidTopics ? `\n\n${avoidTopics}` : ""}
 
 web_searchで以下のクエリを検索してください：
 1. "日本 経済ニュース ${today}"
@@ -129,7 +124,7 @@ web_searchで以下のクエリを検索してください：
 3. "日本 政策 物価 給与 ${today}"
 
 検索結果を踏まえて、指定のJSON形式で出力してください。
-各記事は「子どもに夕食のときに聞かれた親」として書いてください。専門用語は必ず中学生でもわかる言葉に言い換え、数字には必ず出典を明記してください。`;
+文体ルールに従い、友達へのLINE感覚で書いてください。専門用語は必ず言い換え、数字には必ず出典を明記してください。`;
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
@@ -177,4 +172,45 @@ web_searchで以下のクエリを検索してください：
     cleaned.slice(start, end + 1)
   );
   return articles;
+}
+
+export async function selectTopArticles(
+  articles: GeneratedArticle[],
+  topN: number
+): Promise<GeneratedArticle[]> {
+  if (articles.length <= topN) return articles;
+
+  const prompt = `以下は生成された${articles.length}本の記事候補です。
+以下の基準で上位${topN}本を選んでください。
+
+【選定基準】
+・経済・政治の記事を全体の6割以上にする
+・同じ出来事・同じ結論の記事は1本に絞る
+・生活への影響が大きいものを優先
+・読者が「で、どうなるの？」と思うものを優先
+
+選んだ${topN}本のindexを配列で返してください。
+例：[0,1,3,5,6,7,9,11,12,14]
+JSONのみ返すこと。説明文不要。
+
+記事一覧：
+${articles.map((a, i) => `[${i}] ${a.subtitle}`).join("\n")}`;
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 256,
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  const text =
+    response.content.find((b) => b.type === "text")?.text.trim() ?? "";
+  const arrStart = text.indexOf("[");
+  const arrEnd = text.lastIndexOf("]");
+  if (arrStart === -1 || arrEnd === -1) return articles.slice(0, topN);
+
+  const indices: number[] = JSON.parse(text.slice(arrStart, arrEnd + 1));
+  return indices
+    .filter((i) => i >= 0 && i < articles.length)
+    .slice(0, topN)
+    .map((i) => articles[i]);
 }
