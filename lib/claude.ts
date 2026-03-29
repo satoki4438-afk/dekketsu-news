@@ -168,9 +168,14 @@ web_searchで以下のクエリを検索してください：
     );
   }
 
-  const articles: GeneratedArticle[] = JSON.parse(
-    cleaned.slice(start, end + 1)
-  );
+  // JSON文字列値内の制御文字をサニタイズ（改行→\n、タブ→\t）
+  const sanitized = cleaned
+    .slice(start, end + 1)
+    .replace(/"((?:[^"\\]|\\.)*)"/gs, (_, inner) =>
+      `"${inner.replace(/\n/g, "\\n").replace(/\r/g, "").replace(/\t/g, "\\t")}"`
+    );
+
+  const articles: GeneratedArticle[] = JSON.parse(sanitized);
   return articles;
 }
 
