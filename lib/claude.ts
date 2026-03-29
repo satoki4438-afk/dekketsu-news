@@ -12,6 +12,7 @@ function repairJsonStrings(json: string): string {
 
   for (let i = 0; i < json.length; i++) {
     const ch = json[i];
+    const code = ch.charCodeAt(0);
 
     if (escaped) {
       result += ch;
@@ -31,16 +32,60 @@ function repairJsonStrings(json: string): string {
       continue;
     }
 
-    if (inString) {
+    if (inString && code < 0x20) {
       if (ch === "\n") { result += "\\n"; continue; }
       if (ch === "\r") { result += "\\r"; continue; }
       if (ch === "\t") { result += "\\t"; continue; }
+      if (ch === "\b") { result += "\\b"; continue; }
+      if (ch === "\f") { result += "\\f"; continue; }
+      // その他の制御文字はUnicodeエスケープに変換
+      result += `\\u${code.toString(16).padStart(4, "0")}`;
+      continue;
     }
 
     result += ch;
   }
 
   return result;
+}
+
+/** JSON配列文字列から個別オブジェクトを安全に抽出 */
+function parseJsonArraySafe(json: string): GeneratedArticle[] {
+  // まず全体をパースを試みる
+  try {
+    return JSON.parse(json) as GeneratedArticle[];
+  } catch {
+    // 失敗した場合は個別オブジェクトを抽出して1つずつパース
+    const results: GeneratedArticle[] = [];
+    let depth = 0;
+    let start = -1;
+
+    for (let i = 0; i < json.length; i++) {
+      const ch = json[i];
+      if (ch === "{") {
+        if (depth === 0) start = i;
+        depth++;
+      } else if (ch === "}") {
+        depth--;
+        if (depth === 0 && start !== -1) {
+          const chunk = json.slice(start, i + 1);
+          try {
+            const obj = JSON.parse(repairJsonStrings(chunk)) as GeneratedArticle;
+            results.push(obj);
+          } catch (e) {
+            console.warn(`Skipped malformed article object: ${e}`);
+          }
+          start = -1;
+        }
+      }
+    }
+
+    if (results.length === 0) {
+      throw new Error("No valid articles could be parsed from Claude response");
+    }
+    console.warn(`Partial parse: recovered ${results.length} articles after full-parse failure`);
+    return results;
+  }
 }
 
 export interface GeneratedArticle {
@@ -208,10 +253,9 @@ web_searchで以下のクエリを検索してください：
     );
   }
 
-  // state-machine で文字列値内の制御文字のみエスケープ
+  // state-machine でサニタイズ → 個別フォールバック付きパース
   const sanitized = repairJsonStrings(cleaned.slice(start, end + 1));
-
-  const articles: GeneratedArticle[] = JSON.parse(sanitized);
+  const articles = parseJsonArraySafe(sanitized);
   return articles;
 }
 
