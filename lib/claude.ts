@@ -4,6 +4,45 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+/** JSON文字列値内の制御文字だけエスケープするstate-machine */
+function repairJsonStrings(json: string): string {
+  let result = "";
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < json.length; i++) {
+    const ch = json[i];
+
+    if (escaped) {
+      result += ch;
+      escaped = false;
+      continue;
+    }
+
+    if (ch === "\\" && inString) {
+      result += ch;
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      result += ch;
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) {
+      if (ch === "\n") { result += "\\n"; continue; }
+      if (ch === "\r") { result += "\\r"; continue; }
+      if (ch === "\t") { result += "\\t"; continue; }
+    }
+
+    result += ch;
+  }
+
+  return result;
+}
+
 export interface GeneratedArticle {
   title: string;
   subtitle: string;
@@ -168,12 +207,8 @@ web_searchで以下のクエリを検索してください：
     );
   }
 
-  // JSON文字列値内の制御文字をサニタイズ（改行→\n、タブ→\t）
-  const sanitized = cleaned
-    .slice(start, end + 1)
-    .replace(/"((?:[^"\\]|\\.)*)"/gs, (_, inner) =>
-      `"${inner.replace(/\n/g, "\\n").replace(/\r/g, "").replace(/\t/g, "\\t")}"`
-    );
+  // state-machine で文字列値内の制御文字のみエスケープ
+  const sanitized = repairJsonStrings(cleaned.slice(start, end + 1));
 
   const articles: GeneratedArticle[] = JSON.parse(sanitized);
   return articles;
