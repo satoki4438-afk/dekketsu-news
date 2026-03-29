@@ -53,14 +53,14 @@ export default function ArticleCard({ article }: { article: Article }) {
               </span>
             </div>
             <h2
-              className="font-bold leading-snug line-clamp-2 transition-colors group-hover:text-[#f5c842]"
+              className="text-base font-bold leading-snug line-clamp-2 transition-colors group-hover:text-[#f5c842]"
               style={{ color: "var(--text)" }}
             >
               {article.title}
             </h2>
             {article.subtitle && (
               <p
-                className="text-[11px] mt-0.5 line-clamp-1"
+                className="text-[12px] mt-1 line-clamp-2 leading-snug"
                 style={{ color: "var(--text-muted)" }}
               >
                 {article.subtitle}
