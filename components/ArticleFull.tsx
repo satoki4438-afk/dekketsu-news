@@ -265,7 +265,7 @@ export default function ArticleFull({ article }: { article: Article }) {
           )}
         </div>
 
-        {/* ⚖️ ぶっちゃけどっちが正しい？ */}
+        {/* 🤔 で、どういうこと？ */}
         {(article.verdict || article.gap_analysis) && (
           <div
             className="mt-3 border rounded-xl p-4 text-[13px] leading-relaxed"
@@ -279,7 +279,7 @@ export default function ArticleFull({ article }: { article: Article }) {
               className="font-bold block mb-1"
               style={{ color: "var(--text)" }}
             >
-              ⚖️ ぶっちゃけどっちが正しい？
+              🤔 で、どういうこと？
             </span>
             {stripHtml(article.verdict || article.gap_analysis || "")}
           </div>
