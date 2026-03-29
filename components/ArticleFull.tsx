@@ -160,7 +160,7 @@ export default function ArticleFull({ article }: { article: Article }) {
           📋 3行でわかること
         </div>
         <div
-          className="text-sm leading-relaxed whitespace-pre-line"
+          className="text-sm sm:text-base leading-relaxed whitespace-pre-line"
           style={{ color: "var(--text)" }}
         >
           {threePoints}
@@ -268,20 +268,21 @@ export default function ArticleFull({ article }: { article: Article }) {
         {/* 🤔 で、どういうこと？ */}
         {(article.verdict || article.gap_analysis) && (
           <div
-            className="mt-3 border rounded-xl p-4 text-[13px] leading-relaxed"
+            className="mt-3 border rounded-xl p-4 leading-relaxed"
             style={{
               background: "var(--surface2)",
               borderColor: "var(--border)",
               color: "#bbb",
             }}
           >
-            <span
-              className="font-bold block mb-1"
-              style={{ color: "var(--text)" }}
-            >
-              🤔 で、どういうこと？
-            </span>
-            {stripHtml(article.verdict || article.gap_analysis || "")}
+            <div className="flex items-center gap-3 mb-2">
+              <h2 className="text-xl font-black" style={{ color: "var(--text)" }}>
+                🤔 で、どういうこと？
+              </h2>
+            </div>
+            <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#bbb" }}>
+              {stripHtml(article.verdict || article.gap_analysis || "")}
+            </p>
           </div>
         )}
       </div>
