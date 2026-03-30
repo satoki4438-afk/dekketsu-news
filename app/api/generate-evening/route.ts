@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateArticles, selectTopArticles } from "@/lib/claude";
 import { saveArticles, getRecentArticleTitles, getTopFollowedKeywords } from "@/lib/firestore";
-import { postArticlesToTwitter } from "@/lib/twitter";
+import { postTopArticleToTwitter } from "@/lib/twitter";
 
 export const maxDuration = 300; // 5 minutes for Vercel Pro
 
@@ -41,9 +41,13 @@ export async function GET(request: NextRequest) {
     const savedArticles = await saveArticles(selected);
     console.log(`Saved ${savedArticles.length} articles to Firestore`);
 
-    // 5. X（Twitter）に自動投稿
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news.vercel.app";
-    let twitterResult = { success: false, tweetIds: [] as string[], errors: ["Twitter not configured"] };
+    // 5. X（Twitter）に自動投稿（上位1本のみ）
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app";
+    let twitterResult: { success: boolean; tweetId: string | null; error: string | null } = {
+      success: false,
+      tweetId: null,
+      error: "Twitter not configured",
+    };
 
     const hasTwitterConfig =
       process.env.TWITTER_API_KEY &&
@@ -53,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     if (hasTwitterConfig) {
       console.log("Posting to Twitter...");
-      twitterResult = await postArticlesToTwitter(savedArticles, baseUrl);
+      twitterResult = await postTopArticleToTwitter(savedArticles, baseUrl);
       console.log(`Twitter result:`, twitterResult);
     }
 

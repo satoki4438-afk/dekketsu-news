@@ -14,52 +14,54 @@ function getTwitterClient() {
   return new TwitterApi({ appKey, appSecret, accessToken, accessSecret });
 }
 
-function buildTweetText(article: Article, baseUrl: string): string {
-  const url = `${baseUrl}/article/${article.id}`;
-  const hashtags = article.related_keywords
-    .slice(0, 3)
-    .map((k) => `#${k.replace(/\s/g, "")}`)
-    .join(" ");
-
-  // Tweet: emoji + title + fact1行 + URL + hashtags
-  const factOneLine = (article.three_points || article.fact || "").split("\n")[0].slice(0, 50);
-  const tweet = `${article.emoji}【${article.title}】\n\n${factOneLine}...\n\n続きはこちら👇\n${url}\n\n${hashtags} #でけっきょく`;
-
-  // Twitter limit: 280 chars
-  if (tweet.length <= 280) return tweet;
-
-  // Fallback: shorter version
-  return `${article.emoji}【${article.title}】\n\n${url}\n\n${hashtags} #でけっきょく`;
+function stripHtml(s: string): string {
+  return s?.replace(/<[^>]*>/g, "") ?? "";
 }
 
-export async function postArticlesToTwitter(
+function truncate(s: string, n: number): string {
+  return s.length > n ? s.slice(0, n - 1) + "…" : s;
+}
+
+/** follow_count → view_count の順で最もスコアが高い記事を1本選ぶ */
+function selectTopArticle(articles: Article[]): Article {
+  return articles.reduce((best, curr) => {
+    const bestScore = (best.follow_count ?? 0) * 10 + (best.view_count ?? 0);
+    const currScore = (curr.follow_count ?? 0) * 10 + (curr.view_count ?? 0);
+    return currScore > bestScore ? curr : best;
+  });
+}
+
+/** 140文字以内のX投稿文を生成 */
+function buildSingleTweetText(article: Article, baseUrl: string): string {
+  const title = truncate(stripHtml(article.title), 20);
+  const japan = truncate(stripHtml(article.japan_view), 16);
+  const worldRaw = stripHtml(article.world_view ?? "");
+  const verdict = truncate(stripHtml(article.verdict || article.gap_analysis || ""), 22);
+
+  const worldLine = worldRaw ? `\n🌍 海外：${truncate(worldRaw, 16)}` : "";
+
+  return `【${title}】\n\n🇯🇵 日本：${japan}${worldLine}\n\nで、どうなるの？\n→ ${verdict}\n\n今日のやわらかニュース👇\n${baseUrl}\n\n#やわらかニュース`;
+}
+
+export async function postTopArticleToTwitter(
   articles: Article[],
   baseUrl: string
-): Promise<{ success: boolean; tweetIds: string[]; errors: string[] }> {
-  const client = getTwitterClient();
-  const rwClient = client.readWrite;
-
-  const tweetIds: string[] = [];
-  const errors: string[] = [];
-
-  for (const article of articles) {
-    try {
-      const text = buildTweetText(article, baseUrl);
-      const { data } = await rwClient.v2.tweet(text);
-      tweetIds.push(data.id);
-
-      // Wait 1 second between tweets to avoid rate limits
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      errors.push(`Failed to tweet "${article.title}": ${message}`);
-      console.error(`Twitter post error for article ${article.id}:`, err);
-    }
+): Promise<{ success: boolean; tweetId: string | null; error: string | null }> {
+  if (articles.length === 0) {
+    return { success: false, tweetId: null, error: "No articles to post" };
   }
 
-  return {
-    success: errors.length === 0,
-    tweetIds,
-    errors,
-  };
+  const client = getTwitterClient();
+  const rwClient = client.readWrite;
+  const article = selectTopArticle(articles);
+
+  try {
+    const text = buildSingleTweetText(article, baseUrl);
+    const { data } = await rwClient.v2.tweet(text);
+    return { success: true, tweetId: data.id, error: null };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`Twitter post error for article ${article.id}:`, err);
+    return { success: false, tweetId: null, error: message };
+  }
 }
