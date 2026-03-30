@@ -40,7 +40,8 @@ function buildSingleTweetText(article: Article, baseUrl: string): string {
 
   const worldLine = worldRaw ? `\n🌍 海外：${truncate(worldRaw, 16)}` : "";
 
-  return `【${title}】\n\n🇯🇵 日本：${japan}${worldLine}\n\nで、どうなるの？\n→ ${verdict}\n\n今日のやわらかニュース👇\n${baseUrl}\n\n#やわらかニュース`;
+  const text = `【${title}】\n\n🇯🇵 日本：${japan}${worldLine}\n\nで、どうなるの？\n→ ${verdict}\n\n今日のやわらかニュース👇\n${baseUrl}\n\n#やわらかニュース`;
+  return truncate(text, 140);
 }
 
 export async function postTopArticleToTwitter(
