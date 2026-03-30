@@ -31,17 +31,24 @@ function selectTopArticle(articles: Article[]): Article {
   });
 }
 
-/** 140文字以内のX投稿文を生成 */
+/** 最大2000文字のX投稿文を生成（X Premium対応） */
 function buildSingleTweetText(article: Article, baseUrl: string): string {
-  const title = truncate(stripHtml(article.title), 20);
-  const japan = truncate(stripHtml(article.japan_view), 16);
+  const title = stripHtml(article.title);
+  const threePoints = stripHtml(article.three_points || article.fact || "");
+  const japan = stripHtml(article.japan_view);
   const worldRaw = stripHtml(article.world_view ?? "");
-  const verdict = truncate(stripHtml(article.verdict || article.gap_analysis || ""), 22);
+  const verdict = stripHtml(article.verdict || article.gap_analysis || "");
+  const winner = (article.winners ?? []).map(stripHtml).join("、");
+  const loser = (article.losers ?? []).map(stripHtml).join("、");
+  const action = (article.actions ?? []).map(stripHtml).join("\n→ ");
 
-  const worldLine = worldRaw ? `\n🌍 海外：${truncate(worldRaw, 16)}` : "";
+  const worldLine = worldRaw ? `\n🌍 海外：${worldRaw}` : "";
+  const winnersLine = winner ? `得✅ ${winner}\n` : "";
+  const losersLine = loser ? `損❌ ${loser}\n` : "";
+  const actionLine = action ? `💡 どう動く？\n→ ${action}\n\n` : "";
 
-  const text = `【${title}】\n\n🇯🇵 日本：${japan}${worldLine}\n\nで、どうなるの？\n→ ${verdict}\n\n今日のやわらかニュース👇\n${baseUrl}\n\n#やわらかニュース`;
-  return truncate(text, 140);
+  const text = `━━━━━━━━━━━━━━\n【${title}】\n\n📋 3行でわかること\n${threePoints}\n\n🇯🇵 日本：${japan}${worldLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}\n💥 で、どうなるの？\n→ ${verdict}\n\n${actionLine}今日のやわらかニュース👇\n${baseUrl}\n\n#やわらかニュース\n━━━━━━━━━━━━━━`;
+  return truncate(text, 2000);
 }
 
 export async function postTopArticleToTwitter(
