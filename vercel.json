@@ -1,12 +1,7 @@
 {
   "crons": [
-    {
-      "path": "/api/generate",
-      "schedule": "0 21 * * *"
-    },
-    {
-      "path": "/api/generate-evening",
-      "schedule": "0 8 * * *"
-    }
+    {"path": "/api/generate", "schedule": "0 21 * * *"},
+    {"path": "/api/generate", "schedule": "0 9 * * *"},
+    {"path": "/api/generate", "schedule": "0 12 * * *"}
   ]
 }

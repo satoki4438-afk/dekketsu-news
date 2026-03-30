@@ -3,9 +3,10 @@ import { generateArticles, selectTopArticles } from "@/lib/claude";
 import { saveArticles, getRecentArticleTitles } from "@/lib/firestore";
 import { postArticlesToTwitter } from "@/lib/twitter";
 
-export const maxDuration = 300;
+export const maxDuration = 300; // 5 minutes for Vercel Pro
 
 export async function GET(request: NextRequest) {
+  // 1. CRON_SECRET 検証
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
@@ -21,20 +22,20 @@ export async function GET(request: NextRequest) {
         ? `以下はすでに公開済みの記事です：\n${existingTitles.join("\n")}\n【被り判定ルール】\n・同じ出来事・同じ結論の記事は選ばない\n・同じ国や地域でも「別の出来事」ならOK`
         : "";
 
-    // ② 最大7本生成
-    console.log("Generating evening articles with Claude...");
-    const generatedArticles = await generateArticles(avoidTopics, 7);
+    // ② 最大15本生成
+    console.log("Generating articles with Claude...");
+    const generatedArticles = await generateArticles(avoidTopics);
     console.log(`Generated ${generatedArticles.length} articles`);
 
-    // ③ 上位5本に絞る
-    const selected = await selectTopArticles(generatedArticles, 5);
+    // ③ 上位10本に絞る
+    const selected = await selectTopArticles(generatedArticles, 10);
     console.log(`Selected ${selected.length} articles`);
 
     // ④ Firestore に保存
     const savedArticles = await saveArticles(selected);
     console.log(`Saved ${savedArticles.length} articles to Firestore`);
 
-    // ⑤ X（Twitter）に自動投稿
+    // 5. X（Twitter）に自動投稿
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news.vercel.app";
     let twitterResult = { success: false, tweetIds: [] as string[], errors: ["Twitter not configured"] };
 
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest) {
     if (hasTwitterConfig) {
       console.log("Posting to Twitter...");
       twitterResult = await postArticlesToTwitter(savedArticles, baseUrl);
+      console.log(`Twitter result:`, twitterResult);
     }
 
     return NextResponse.json({
@@ -56,7 +58,7 @@ export async function GET(request: NextRequest) {
       twitter: twitterResult,
     });
   } catch (error) {
-    console.error("Generate evening error:", error);
+    console.error("Generate error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
