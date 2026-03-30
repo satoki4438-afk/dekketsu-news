@@ -6,6 +6,7 @@ import ArticleCard from "@/components/ArticleCard";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import ViewTracker from "@/components/ViewTracker";
+import FollowButton from "@/components/FollowButton";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -63,6 +64,11 @@ export default async function ArticlePage({
           <ViewTracker articleId={article.id} />
           {/* 記事本文 */}
           <ArticleFull article={article} />
+
+          {/* おっかけボタン */}
+          <div className="mt-6 flex justify-center">
+            <FollowButton articleId={article.id} />
+          </div>
 
           {/* 関連記事 */}
           {related.length > 0 && (

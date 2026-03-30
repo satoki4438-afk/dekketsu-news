@@ -19,6 +19,7 @@ export interface Article {
   subtitle?: string;
   category: string;
   view_count?: number;
+  follow_count?: number;
   emoji: string;
   publishedAt: Timestamp;
   // 元記事
@@ -64,6 +65,7 @@ export async function saveArticles(
     const data: Omit<Article, "id"> = {
       ...rest,
       view_count: 0,
+      follow_count: 0,
       publishedAt: Timestamp.fromDate(new Date(publishedAt)),
       createdAt: Timestamp.now(),
     };
@@ -136,6 +138,35 @@ export async function getTopArticlesByViews(limit = 5): Promise<Article[]> {
     .limit(limit)
     .get();
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
+}
+
+export async function incrementFollowCount(id: string): Promise<void> {
+  await db.collection("articles").doc(id).update({
+    follow_count: FieldValue.increment(1),
+  });
+}
+
+export async function getTopArticlesByFollowCount(limit = 5): Promise<Article[]> {
+  const snapshot = await db
+    .collection("articles")
+    .orderBy("follow_count", "desc")
+    .limit(limit)
+    .get();
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
+}
+
+export async function getTopFollowedKeywords(limit = 3): Promise<string[]> {
+  const snapshot = await db
+    .collection("articles")
+    .orderBy("follow_count", "desc")
+    .limit(limit)
+    .get();
+  const articles = snapshot.docs.map((doc) => doc.data() as Article);
+  const keywords = articles.flatMap((a) => [
+    ...(a.subtitle ? [a.subtitle] : []),
+    ...(a.related_keywords ?? []),
+  ]);
+  return [...new Set(keywords)];
 }
 
 export async function getRecentArticleTitles(limit: number): Promise<string[]> {

@@ -192,7 +192,8 @@ const SYSTEM_PROMPT = `あなたは「やわらかニュース」の記事ライ
 
 export async function generateArticles(
   avoidTopics: string = "",
-  maxArticles: number = 15
+  maxArticles: number = 15,
+  priorityKeywords: string[] = []
 ): Promise<GeneratedArticle[]> {
   const today = new Date().toLocaleDateString("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -201,7 +202,12 @@ export async function generateArticles(
     day: "numeric",
   });
 
-  const userMessage = `今日（${today}）の日本および世界のニュースをweb_searchで検索し、選定ルールに従って最大${maxArticles}本のニュースを選んで解説してください。${avoidTopics ? `\n\n${avoidTopics}` : ""}
+  const prioritySection =
+    priorityKeywords.length > 0
+      ? `\n\n【おっかけ優先トピック】\n以下のトピックに関連する続報・関連ニュースを優先的に選んでください：\n${priorityKeywords.map((k) => `・${k}`).join("\n")}`
+      : "";
+
+  const userMessage = `今日（${today}）の日本および世界のニュースをweb_searchで検索し、選定ルールに従って最大${maxArticles}本のニュースを選んで解説してください。${avoidTopics ? `\n\n${avoidTopics}` : ""}${prioritySection}
 
 web_searchで以下のクエリを検索してください：
 1. "日本 経済ニュース ${today}"
