@@ -46,22 +46,33 @@ function buildSingleTweetText(article: Article, baseUrl: string): string {
 export async function postTopArticleToTwitter(
   articles: Article[],
   baseUrl: string
-): Promise<{ success: boolean; tweetId: string | null; error: string | null }> {
+): Promise<{ success: boolean; tweetId: string | null; error: string | null; tweetText: string }> {
   if (articles.length === 0) {
-    return { success: false, tweetId: null, error: "No articles to post" };
+    return { success: false, tweetId: null, error: "No articles to post", tweetText: "" };
+  }
+
+  const article = selectTopArticle(articles);
+  const tweetText = buildSingleTweetText(article, baseUrl);
+
+  const hasTwitterConfig =
+    process.env.TWITTER_API_KEY &&
+    process.env.TWITTER_API_SECRET &&
+    process.env.TWITTER_ACCESS_TOKEN &&
+    process.env.TWITTER_ACCESS_TOKEN_SECRET;
+
+  if (!hasTwitterConfig) {
+    return { success: false, tweetId: null, error: "Twitter not configured", tweetText };
   }
 
   const client = getTwitterClient();
   const rwClient = client.readWrite;
-  const article = selectTopArticle(articles);
 
   try {
-    const text = buildSingleTweetText(article, baseUrl);
-    const { data } = await rwClient.v2.tweet(text);
-    return { success: true, tweetId: data.id, error: null };
+    const { data } = await rwClient.v2.tweet(tweetText);
+    return { success: true, tweetId: data.id, error: null, tweetText };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(`Twitter post error for article ${article.id}:`, err);
-    return { success: false, tweetId: null, error: message };
+    return { success: false, tweetId: null, error: message, tweetText };
   }
 }

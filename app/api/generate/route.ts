@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateArticles, selectTopArticles } from "@/lib/claude";
 import { saveArticles, getRecentArticleTitles, getTopFollowedKeywords } from "@/lib/firestore";
 import { postTopArticleToTwitter } from "@/lib/twitter";
+import { sendTweetDraftEmail } from "@/lib/email";
 
 export const maxDuration = 300; // 5 minutes for Vercel Pro
 
@@ -41,24 +42,15 @@ export async function GET(request: NextRequest) {
     const savedArticles = await saveArticles(selected);
     console.log(`Saved ${savedArticles.length} articles to Firestore`);
 
-    // 5. X（Twitter）に自動投稿（上位1本のみ）
+    // 5. X（Twitter）に自動投稿（上位1本のみ）＆メール送信
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app";
-    let twitterResult: { success: boolean; tweetId: string | null; error: string | null } = {
-      success: false,
-      tweetId: null,
-      error: "Twitter not configured",
-    };
+    console.log("Posting to Twitter...");
+    const twitterResult = await postTopArticleToTwitter(savedArticles, baseUrl);
+    console.log(`Twitter result:`, twitterResult);
 
-    const hasTwitterConfig =
-      process.env.TWITTER_API_KEY &&
-      process.env.TWITTER_API_SECRET &&
-      process.env.TWITTER_ACCESS_TOKEN &&
-      process.env.TWITTER_ACCESS_TOKEN_SECRET;
-
-    if (hasTwitterConfig) {
-      console.log("Posting to Twitter...");
-      twitterResult = await postTopArticleToTwitter(savedArticles, baseUrl);
-      console.log(`Twitter result:`, twitterResult);
+    // 6. 投稿文をメールで送信
+    if (twitterResult.tweetText) {
+      await sendTweetDraftEmail(twitterResult.tweetText);
     }
 
     return NextResponse.json({
