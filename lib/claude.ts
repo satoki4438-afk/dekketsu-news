@@ -265,6 +265,54 @@ web_searchで以下のクエリを検索してください：
   return articles;
 }
 
+export async function generateBuzzTweet(
+  articles: { id: string; title: string; subtitle?: string; verdict?: string; gap_analysis?: string; emoji: string; category: string }[],
+  baseUrl: string
+): Promise<{ articleId: string; text: string }> {
+  const list = articles
+    .map((a, i) => `[${i}] ${a.emoji} ${a.title.replace(/<[^>]*>/g, "")} — ${(a.verdict || a.gap_analysis || "").replace(/<[^>]*>/g, "").slice(0, 60)}`)
+    .join("\n");
+
+  const prompt = `以下の記事リストの中から、Xで最もバズりそうな1本を選び、フック強めの投稿文を書いてください。
+
+【記事リスト】
+${list}
+
+【投稿文のルール】
+- 1行目：「え、これマジ？」「知らなかった」「ちょっと待って」系のフック（絵文字あり）
+- 2〜3行：「実は〜」「多くの人が気づいてないけど〜」系で続きを読ませる煽り
+- 最後：「👉 詳しくはこちら」の1行（URLは後で付ける）
+- 合計150文字以内
+- 硬い言葉ゼロ・友達LINEの感覚で
+- #でどうなるの を末尾につける
+
+以下のJSON形式で返してください。説明文不要。
+{"index": 選んだ記事のindex番号, "text": "投稿文"}`;
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 512,
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  const raw = response.content.find((b) => b.type === "text")?.text.trim() ?? "";
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start === -1 || end === -1) {
+    const article = articles[0];
+    return {
+      articleId: article.id,
+      text: `${article.emoji} ${article.title.replace(/<[^>]*>/g, "")}\n👉 詳しくはこちら\n${baseUrl}/article/${article.id}\n#でどうなるの`,
+    };
+  }
+
+  const parsed = JSON.parse(raw.slice(start, end + 1));
+  const idx = Number(parsed.index);
+  const article = articles[Math.max(0, Math.min(idx, articles.length - 1))];
+  const tweetText = `${parsed.text}\n${baseUrl}/article/${article.id}`;
+  return { articleId: article.id, text: tweetText };
+}
+
 export async function selectTopArticles(
   articles: GeneratedArticle[],
   topN: number

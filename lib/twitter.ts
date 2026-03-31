@@ -51,6 +51,28 @@ function buildSingleTweetText(article: Article, baseUrl: string): string {
   return truncate(text, 2000);
 }
 
+export async function postBuzzTweet(
+  tweetText: string
+): Promise<{ success: boolean; tweetId: string | null; error: string | null }> {
+  const hasConfig =
+    process.env.TWITTER_API_KEY &&
+    process.env.TWITTER_API_SECRET &&
+    process.env.TWITTER_ACCESS_TOKEN &&
+    process.env.TWITTER_ACCESS_TOKEN_SECRET;
+
+  if (!hasConfig) return { success: false, tweetId: null, error: "Twitter not configured" };
+
+  const client = getTwitterClient();
+  try {
+    const { data } = await client.readWrite.v2.tweet(tweetText);
+    return { success: true, tweetId: data.id, error: null };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Buzz tweet error:", err);
+    return { success: false, tweetId: null, error: message };
+  }
+}
+
 export async function postTopArticleToTwitter(
   articles: Article[],
   baseUrl: string
