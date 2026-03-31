@@ -188,6 +188,18 @@ export async function getTopFollowedKeywords(limit = 3): Promise<string[]> {
   return [...new Set(keywords)];
 }
 
+export async function searchArticles(query: string): Promise<Article[]> {
+  const all = await getAllArticles();
+  const q = query.toLowerCase();
+  return all.filter((a) => {
+    const text = [
+      a.title, a.subtitle, a.three_points, a.fact,
+      a.japan_view, a.world_view, a.verdict, a.gap_analysis,
+    ].filter(Boolean).join(" ").toLowerCase();
+    return text.includes(q);
+  });
+}
+
 export async function getArticleMonths(): Promise<{ month: string; label: string; count: number }[]> {
   // createdAt フィールドだけ取得（効率化）
   const snapshot = await db

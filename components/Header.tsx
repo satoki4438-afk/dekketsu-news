@@ -41,15 +41,37 @@ export default function Header() {
             </span>
           </div>
         </Link>
-        <div
-          className="text-[12px] px-3 py-1.5 rounded-full border hidden sm:block"
-          style={{
-            color: "var(--text-muted)",
-            background: "var(--surface)",
-            borderColor: "var(--border)",
-          }}
-        >
-          {today}
+        <div className="flex items-center gap-3">
+          <form action="/search" method="GET" className="hidden sm:flex items-center gap-1">
+            <input
+              type="search"
+              name="q"
+              placeholder="キーワード検索"
+              className="w-36 px-3 py-1.5 rounded-full text-[12px] border outline-none focus:border-[var(--accent)] focus:w-48 transition-all"
+              style={{
+                background: "var(--surface)",
+                color: "var(--text)",
+                borderColor: "var(--border)",
+              }}
+            />
+            <button
+              type="submit"
+              className="text-[18px] px-1 opacity-60 hover:opacity-100 transition-opacity"
+              aria-label="検索"
+            >
+              🔍
+            </button>
+          </form>
+          <div
+            className="text-[12px] px-3 py-1.5 rounded-full border hidden sm:block"
+            style={{
+              color: "var(--text-muted)",
+              background: "var(--surface)",
+              borderColor: "var(--border)",
+            }}
+          >
+            {today}
+          </div>
         </div>
       </div>
 
