@@ -144,6 +144,27 @@ export default function ArticleFull({ article }: { article: Article }) {
         </div>
       </div>
 
+      {/* 🤔 で、どういうこと？ */}
+      {(article.verdict || article.gap_analysis) && (
+        <div
+          className="mb-7 border rounded-xl p-4 leading-relaxed"
+          style={{
+            background: "var(--surface2)",
+            borderColor: "var(--border)",
+            color: "#bbb",
+          }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="text-xl font-black" style={{ color: "var(--text)" }}>
+              🤔 で、どういうこと？
+            </h2>
+          </div>
+          <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#bbb" }}>
+            {stripHtml(article.verdict || article.gap_analysis || "")}
+          </p>
+        </div>
+      )}
+
       {/* 📋 3行でわかること */}
       <div
         className="rounded-lg p-5 mb-7 border"
@@ -265,26 +286,6 @@ export default function ArticleFull({ article }: { article: Article }) {
           )}
         </div>
 
-        {/* 🤔 で、どういうこと？ */}
-        {(article.verdict || article.gap_analysis) && (
-          <div
-            className="mt-3 border rounded-xl p-4 leading-relaxed"
-            style={{
-              background: "var(--surface2)",
-              borderColor: "var(--border)",
-              color: "#bbb",
-            }}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-xl font-black" style={{ color: "var(--text)" }}>
-                🤔 で、どういうこと？
-              </h2>
-            </div>
-            <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#bbb" }}>
-              {stripHtml(article.verdict || article.gap_analysis || "")}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* 💰 得する・損する */}
