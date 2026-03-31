@@ -32,7 +32,7 @@ export default async function Home({
 
   const fetched =
     activeCategory === "全部"
-      ? await getAllArticles()
+      ? await getAllArticles().catch(() => [])
       : await getAllArticlesByCategory(activeCategory).catch(() => []);
 
   const JST_OFFSET = 9 * 60 * 60 * 1000;
