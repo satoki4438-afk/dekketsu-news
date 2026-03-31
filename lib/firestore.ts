@@ -59,15 +59,18 @@ export async function saveArticles(
 ): Promise<Article[]> {
   const batch = db.batch();
   const saved: Article[] = [];
+  const baseMs = Timestamp.now().toMillis();
 
-  for (const { publishedAt, ...rest } of articles) {
+  for (let i = 0; i < articles.length; i++) {
+    const { publishedAt, ...rest } = articles[i];
     const ref = db.collection("articles").doc();
     const data: Omit<Article, "id"> = {
       ...rest,
       view_count: 0,
       follow_count: 0,
       publishedAt: Timestamp.fromDate(new Date(publishedAt)),
-      createdAt: Timestamp.now(),
+      // バッチ内の順序を保持するため i ミリ秒ずつずらす（新しいものほど大きい値）
+      createdAt: Timestamp.fromMillis(baseMs + (articles.length - 1 - i)),
     };
     batch.set(ref, data);
     saved.push({ id: ref.id, ...data });
@@ -80,7 +83,7 @@ export async function saveArticles(
 export async function getLatestArticles(limit = 6): Promise<Article[]> {
   const snapshot = await db
     .collection("articles")
-    .orderBy("publishedAt", "desc")
+    .orderBy("createdAt", "desc")
     .limit(limit)
     .get();
 
@@ -90,7 +93,7 @@ export async function getLatestArticles(limit = 6): Promise<Article[]> {
 export async function getAllArticles(): Promise<Article[]> {
   const snapshot = await db
     .collection("articles")
-    .orderBy("publishedAt", "desc")
+    .orderBy("createdAt", "desc")
     .get();
 
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
@@ -103,7 +106,7 @@ export async function getArticlesByCategory(
   const snapshot = await db
     .collection("articles")
     .where("category", "==", category)
-    .orderBy("publishedAt", "desc")
+    .orderBy("createdAt", "desc")
     .limit(limit)
     .get();
 
@@ -114,7 +117,7 @@ export async function getAllArticlesByCategory(category: string): Promise<Articl
   const snapshot = await db
     .collection("articles")
     .where("category", "==", category)
-    .orderBy("publishedAt", "desc")
+    .orderBy("createdAt", "desc")
     .get();
 
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
@@ -134,7 +137,7 @@ export async function getRelatedArticles(
   const snapshot = await db
     .collection("articles")
     .where("category", "==", category)
-    .orderBy("publishedAt", "desc")
+    .orderBy("createdAt", "desc")
     .limit(limit + 1)
     .get();
 
@@ -226,7 +229,7 @@ export async function getArticleMonths(): Promise<{ month: string; label: string
 export async function getRecentArticleTitles(limit: number): Promise<string[]> {
   const snapshot = await db
     .collection("articles")
-    .orderBy("publishedAt", "desc")
+    .orderBy("createdAt", "desc")
     .limit(limit)
     .get();
 
