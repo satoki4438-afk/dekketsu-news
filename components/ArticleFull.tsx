@@ -72,6 +72,9 @@ export default function ArticleFull({ article }: { article: Article }) {
     border: "rgba(255,255,255,0.2)",
   };
   const threePoints = stripHtml(article.three_points || article.fact || "");
+  const verdict = stripHtml(article.verdict || article.gap_analysis || "")
+    .replace(/^[🤔\s]*で、どういうこと？\s*/u, "")
+    .trimStart();
 
   return (
     <article>
@@ -145,7 +148,7 @@ export default function ArticleFull({ article }: { article: Article }) {
       </div>
 
       {/* 🤔 で、どういうこと？ */}
-      {(article.verdict || article.gap_analysis) && (
+      {verdict && (
         <div
           className="mb-7 border rounded-xl p-4 leading-relaxed"
           style={{
@@ -160,7 +163,7 @@ export default function ArticleFull({ article }: { article: Article }) {
             </h2>
           </div>
           <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#bbb" }}>
-            {stripHtml(article.verdict || article.gap_analysis || "")}
+            {verdict}
           </p>
         </div>
       )}
