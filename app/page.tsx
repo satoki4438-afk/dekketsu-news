@@ -26,11 +26,24 @@ export default async function Home({
 
   const pageParam = typeof params.page === "string" ? parseInt(params.page, 10) : 1;
   const currentPage = Number.isFinite(pageParam) && pageParam >= 1 ? pageParam : 1;
+  const activeMonth = typeof params.month === "string" && /^\d{4}-\d{2}$/.test(params.month)
+    ? params.month
+    : null;
 
-  const allArticles =
+  const fetched =
     activeCategory === "全部"
       ? await getAllArticles()
       : await getAllArticlesByCategory(activeCategory).catch(() => []);
+
+  const JST_OFFSET = 9 * 60 * 60 * 1000;
+  const allArticles = activeMonth
+    ? fetched.filter((a) => {
+        const ts = a.createdAt;
+        const jstDate = new Date(ts.toDate().getTime() + JST_OFFSET);
+        const key = `${jstDate.getUTCFullYear()}-${String(jstDate.getUTCMonth() + 1).padStart(2, "0")}`;
+        return key === activeMonth;
+      })
+    : fetched;
 
   const totalCount = allArticles.length;
   const offset = (currentPage - 1) * PAGE_SIZE;
@@ -48,6 +61,7 @@ export default async function Home({
   function pageHref(page: number) {
     const q = new URLSearchParams();
     if (activeCategory !== "全部") q.set("category", activeCategory);
+    if (activeMonth) q.set("month", activeMonth);
     if (page > 1) q.set("page", String(page));
     const qs = q.toString();
     return qs ? `/?${qs}` : "/";
@@ -61,17 +75,22 @@ export default async function Home({
           {/* 見出し・カテゴリフィルター（フル幅） */}
           <div className="mb-6">
             <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
-              今日のニュース
-              <span
-                className="text-sm font-normal ml-2"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {today}
-              </span>
+              {activeMonth ? `${activeMonth.replace("-", "/")} のニュース` : "今日のニュース"}
+              {!activeMonth && (
+                <span className="text-sm font-normal ml-2" style={{ color: "var(--text-muted)" }}>
+                  {today}
+                </span>
+              )}
             </h1>
-            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-              毎朝6時にAIが自動収集・解説 — 生活への影響までまるわかり
-            </p>
+            {activeMonth ? (
+              <a href="/" className="text-sm mt-1 hover:underline" style={{ color: "var(--accent)" }}>
+                ← 最新記事に戻る
+              </a>
+            ) : (
+              <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+                毎朝6時にAIが自動収集・解説 — 生活への影響までまるわかり
+              </p>
+            )}
           </div>
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {CATEGORIES.map((cat) => (

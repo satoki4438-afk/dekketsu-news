@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { getTopArticlesByViews, getTopArticlesByFollowCount } from "@/lib/firestore";
+import { getTopArticlesByViews, getTopArticlesByFollowCount, getArticleMonths } from "@/lib/firestore";
 
 export default async function Sidebar() {
-  const [articles, trending] = await Promise.all([
+  const [articles, trending, months] = await Promise.all([
     getTopArticlesByViews(5).catch(() => []),
     getTopArticlesByFollowCount(5).catch(() => []),
+    getArticleMonths().catch(() => []),
   ]);
 
   return (
@@ -93,6 +94,42 @@ export default async function Sidebar() {
           )}
         </div>
       </div>
+      {/* 月別アーカイブ */}
+      {months.length > 0 && (
+        <div
+          className="border rounded-xl p-4"
+          style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+        >
+          <h3
+            className="text-[11px] font-bold tracking-[2px] mb-3"
+            style={{ color: "var(--text-muted)" }}
+          >
+            📅 月別アーカイブ
+          </h3>
+          <div className="flex flex-col">
+            {months.map((m, i) => (
+              <Link
+                key={m.month}
+                href={`/?month=${m.month}`}
+                className="flex items-center justify-between py-2 text-[12px] transition-colors hover:text-[#f5c842]"
+                style={{
+                  color: "var(--text)",
+                  borderBottom:
+                    i < months.length - 1 ? "1px solid var(--border)" : "none",
+                }}
+              >
+                <span>{m.label}</span>
+                <span
+                  className="text-[11px] px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-muted)" }}
+                >
+                  {m.count}件
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

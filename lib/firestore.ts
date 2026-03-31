@@ -188,6 +188,29 @@ export async function getTopFollowedKeywords(limit = 3): Promise<string[]> {
   return [...new Set(keywords)];
 }
 
+export async function getArticleMonths(): Promise<{ month: string; label: string; count: number }[]> {
+  // createdAt フィールドだけ取得（効率化）
+  const snapshot = await db
+    .collection("articles")
+    .select("createdAt")
+    .get();
+
+  const JST_OFFSET = 9 * 60 * 60 * 1000;
+  const counts: Record<string, number> = {};
+
+  for (const doc of snapshot.docs) {
+    const ts = doc.data().createdAt as Timestamp;
+    if (!ts) continue;
+    const jstDate = new Date(ts.toDate().getTime() + JST_OFFSET);
+    const key = `${jstDate.getUTCFullYear()}-${String(jstDate.getUTCMonth() + 1).padStart(2, "0")}`;
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+
+  return Object.entries(counts)
+    .map(([month, count]) => ({ month, label: month.replace("-", "/"), count }))
+    .sort((a, b) => b.month.localeCompare(a.month));
+}
+
 export async function getRecentArticleTitles(limit: number): Promise<string[]> {
   const snapshot = await db
     .collection("articles")
