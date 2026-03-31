@@ -123,6 +123,57 @@ export async function getAllArticlesByCategory(category: string): Promise<Articl
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
 }
 
+/** カーソルベースのページネーション。PAGE_SIZE+1件だけ読み取る */
+export async function getArticlesCursor(
+  pageSize: number,
+  afterMs?: number,
+  category?: string,
+): Promise<{ articles: Article[]; hasMore: boolean; lastMs: number | null }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query: any = db.collection("articles").orderBy("createdAt", "desc");
+  if (category) query = query.where("category", "==", category);
+  if (afterMs != null) query = query.startAfter(Timestamp.fromMillis(afterMs));
+  const snapshot = await query.limit(pageSize + 1).get();
+  const docs = snapshot.docs.slice(0, pageSize);
+  const hasMore = snapshot.docs.length > pageSize;
+  const lastDoc = docs[docs.length - 1];
+  const lastMs = lastDoc ? (lastDoc.data().createdAt as Timestamp).toMillis() : null;
+  return {
+    articles: docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => ({ id: doc.id, ...doc.data() } as Article)),
+    hasMore,
+    lastMs,
+  };
+}
+
+/** 月別フィルター付きページネーション（月内は少数なのでJS側でカテゴリフィルター） */
+export async function getArticlesByMonthCursor(
+  pageSize: number,
+  monthKey: string,
+  afterMs?: number,
+  category?: string,
+): Promise<{ articles: Article[]; hasMore: boolean; lastMs: number | null }> {
+  const [year, month] = monthKey.split("-").map(Number);
+  const JST_OFFSET = 9 * 60 * 60 * 1000;
+  const startUtcMs = new Date(year, month - 1, 1).getTime() - JST_OFFSET;
+  const endUtcMs = new Date(year, month, 1).getTime() - JST_OFFSET;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query: any = db
+    .collection("articles")
+    .where("createdAt", ">=", Timestamp.fromMillis(startUtcMs))
+    .where("createdAt", "<", Timestamp.fromMillis(endUtcMs))
+    .orderBy("createdAt", "desc");
+  if (afterMs != null) query = query.startAfter(Timestamp.fromMillis(afterMs));
+  const snapshot = await query.get();
+  // カテゴリはJS側でフィルター（月内は少数なので問題なし）
+  let all = snapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => ({ id: doc.id, ...doc.data() } as Article));
+  if (category) all = all.filter((a: Article) => a.category === category);
+  const page = all.slice(0, pageSize);
+  const hasMore = all.length > pageSize;
+  const lastDoc = page[page.length - 1];
+  const lastMs = lastDoc ? (lastDoc.createdAt as Timestamp).toMillis() : null;
+  return { articles: page, hasMore, lastMs };
+}
+
 export async function getAdjacentArticles(createdAt: Timestamp): Promise<{
   newer: Article | null;
   older: Article | null;

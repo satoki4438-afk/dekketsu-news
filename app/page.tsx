@@ -1,4 +1,4 @@
-import { getAllArticles, getAllArticlesByCategory } from "@/lib/firestore";
+import { getArticlesCursor, getArticlesByMonthCursor } from "@/lib/firestore";
 import ArticleCard from "@/components/ArticleCard";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -16,40 +16,28 @@ export default async function Home({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const categoryParam =
-    typeof params.category === "string" ? params.category : "全部";
-  const activeCategory: Category = (
-    CATEGORIES as readonly string[]
-  ).includes(categoryParam)
+
+  const categoryParam = typeof params.category === "string" ? params.category : "全部";
+  const activeCategory: Category = (CATEGORIES as readonly string[]).includes(categoryParam)
     ? (categoryParam as Category)
     : "全部";
 
-  const pageParam = typeof params.page === "string" ? parseInt(params.page, 10) : 1;
-  const currentPage = Number.isFinite(pageParam) && pageParam >= 1 ? pageParam : 1;
-  const activeMonth = typeof params.month === "string" && /^\d{4}-\d{2}$/.test(params.month)
-    ? params.month
-    : null;
+  const activeMonth =
+    typeof params.month === "string" && /^\d{4}-\d{2}$/.test(params.month)
+      ? params.month
+      : null;
 
-  const fetched =
-    activeCategory === "全部"
-      ? await getAllArticles().catch(() => [])
-      : await getAllArticlesByCategory(activeCategory).catch(() => []);
+  // afterMs: カーソル（前ページ最後の createdAt ミリ秒）
+  const afterParam = typeof params.after === "string" ? parseInt(params.after, 10) : undefined;
+  const afterMs = afterParam && Number.isFinite(afterParam) ? afterParam : undefined;
 
-  const JST_OFFSET = 9 * 60 * 60 * 1000;
-  const allArticles = activeMonth
-    ? fetched.filter((a) => {
-        const ts = a.createdAt;
-        const jstDate = new Date(ts.toDate().getTime() + JST_OFFSET);
-        const key = `${jstDate.getUTCFullYear()}-${String(jstDate.getUTCMonth() + 1).padStart(2, "0")}`;
-        return key === activeMonth;
-      })
-    : fetched;
+  const category = activeCategory !== "全部" ? activeCategory : undefined;
 
-  const totalCount = allArticles.length;
-  const offset = (currentPage - 1) * PAGE_SIZE;
-  const articles = allArticles.slice(offset, offset + PAGE_SIZE);
-
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const { articles, hasMore, lastMs } = await (
+    activeMonth
+      ? getArticlesByMonthCursor(PAGE_SIZE, activeMonth, afterMs, category)
+      : getArticlesCursor(PAGE_SIZE, afterMs, category)
+  ).catch(() => ({ articles: [], hasMore: false, lastMs: null }));
 
   const today = new Date().toLocaleDateString("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -58,13 +46,12 @@ export default async function Home({
     day: "numeric",
   });
 
-  function pageHref(page: number) {
+  function nextHref() {
     const q = new URLSearchParams();
     if (activeCategory !== "全部") q.set("category", activeCategory);
     if (activeMonth) q.set("month", activeMonth);
-    if (page > 1) q.set("page", String(page));
-    const qs = q.toString();
-    return qs ? `/?${qs}` : "/";
+    if (lastMs != null) q.set("after", String(lastMs));
+    return `/?${q.toString()}`;
   }
 
   return (
@@ -72,7 +59,7 @@ export default async function Home({
       <Header />
       <main className="min-h-screen">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          {/* 見出し・カテゴリフィルター（フル幅） */}
+          {/* 見出し・カテゴリフィルター */}
           <div className="mb-6">
             <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
               {activeMonth ? `${activeMonth.replace("-", "/")} のニュース` : "今日のニュース"}
@@ -92,25 +79,17 @@ export default async function Home({
               </p>
             )}
           </div>
+
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {CATEGORIES.map((cat) => (
               <a
                 key={cat}
-                href={cat === "全部" ? "/" : `/?category=${cat}`}
+                href={cat === "全部" ? (activeMonth ? `/?month=${activeMonth}` : "/") : (activeMonth ? `/?category=${cat}&month=${activeMonth}` : `/?category=${cat}`)}
                 className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors border"
                 style={
                   activeCategory === cat
-                    ? {
-                        background: "var(--accent)",
-                        color: "#0d0d0d",
-                        borderColor: "var(--accent)",
-                        fontWeight: 700,
-                      }
-                    : {
-                        background: "var(--surface)",
-                        color: "var(--text-muted)",
-                        borderColor: "var(--border)",
-                      }
+                    ? { background: "var(--accent)", color: "#0d0d0d", borderColor: "var(--accent)", fontWeight: 700 }
+                    : { background: "var(--surface)", color: "var(--text-muted)", borderColor: "var(--border)" }
                 }
               >
                 {cat}
@@ -122,10 +101,7 @@ export default async function Home({
           <div className="lg:grid lg:grid-cols-[1fr_280px] lg:gap-8 lg:items-start">
             <div>
               {articles.length === 0 ? (
-                <div
-                  className="text-center py-20"
-                  style={{ color: "var(--text-muted)" }}
-                >
+                <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
                   <div className="text-5xl mb-4">📭</div>
                   <p className="text-lg font-medium">まだ記事がありません</p>
                   <p className="text-sm mt-2">毎朝6時に自動更新されます</p>
@@ -139,51 +115,33 @@ export default async function Home({
                   </div>
 
                   {/* ページネーション */}
-                  {totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-3 mt-10">
-                      {currentPage > 1 ? (
-                        <a
-                          href={pageHref(currentPage - 1)}
-                          className="px-5 py-2 rounded-full text-sm font-medium border transition-colors"
-                          style={{
-                            background: "var(--surface)",
-                            color: "var(--text)",
-                            borderColor: "var(--border)",
-                          }}
-                        >
-                          ← 前のページ
-                        </a>
-                      ) : (
-                        <span className="px-5 py-2 rounded-full text-sm font-medium border opacity-30 cursor-default"
-                          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
-                          ← 前のページ
-                        </span>
-                      )}
+                  <div className="flex items-center justify-center gap-4 mt-10">
+                    {afterMs != null ? (
+                      <a
+                        href={(() => {
+                          const q = new URLSearchParams();
+                          if (activeCategory !== "全部") q.set("category", activeCategory);
+                          if (activeMonth) q.set("month", activeMonth);
+                          const qs = q.toString();
+                          return qs ? `/?${qs}` : "/";
+                        })()}
+                        className="px-5 py-2 rounded-full text-sm font-medium border transition-colors"
+                        style={{ background: "var(--surface)", color: "var(--text)", borderColor: "var(--border)" }}
+                      >
+                        ← 最初に戻る
+                      </a>
+                    ) : null}
 
-                      <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-                        {currentPage} / {totalPages}
-                      </span>
-
-                      {currentPage < totalPages ? (
-                        <a
-                          href={pageHref(currentPage + 1)}
-                          className="px-5 py-2 rounded-full text-sm font-medium border transition-colors"
-                          style={{
-                            background: "var(--surface)",
-                            color: "var(--text)",
-                            borderColor: "var(--border)",
-                          }}
-                        >
-                          次のページ →
-                        </a>
-                      ) : (
-                        <span className="px-5 py-2 rounded-full text-sm font-medium border opacity-30 cursor-default"
-                          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
-                          次のページ →
-                        </span>
-                      )}
-                    </div>
-                  )}
+                    {hasMore && lastMs != null ? (
+                      <a
+                        href={nextHref()}
+                        className="px-5 py-2 rounded-full text-sm font-medium border transition-colors"
+                        style={{ background: "var(--surface)", color: "var(--text)", borderColor: "var(--border)" }}
+                      >
+                        もっと見る →
+                      </a>
+                    ) : null}
+                  </div>
                 </>
               )}
             </div>
