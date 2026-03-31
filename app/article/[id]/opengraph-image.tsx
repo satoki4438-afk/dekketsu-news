@@ -1,5 +1,4 @@
 import { ImageResponse } from "next/og";
-import { getArticleById } from "@/lib/firestore";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -23,12 +22,13 @@ export default async function Image({
 }) {
   const { id } = await params;
 
-  // Firestoreから記事取得（失敗時はフォールバック）
+  // 動的importでFirebase Admin初期化をリクエスト時まで遅延
   let title = "で、どうなるの？";
   let emoji = "📰";
   let category = "";
 
   try {
+    const { getArticleById } = await import("@/lib/firestore");
     const article = await getArticleById(id);
     if (article) {
       title = article.title.replace(/<[^>]*>/g, "");
