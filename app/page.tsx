@@ -88,7 +88,7 @@ export default async function Home({
               </a>
             ) : (
               <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-                毎朝6時にAIが自動収集・解説 — 生活への影響までまるわかり
+                毎朝・夕方にAIが自動収集・解説 — 生活への影響までまるわかり
               </p>
             )}
           </div>
