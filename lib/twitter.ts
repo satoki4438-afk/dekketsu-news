@@ -52,7 +52,8 @@ function buildSingleTweetText(article: Article, baseUrl: string): string {
 }
 
 export async function postBuzzTweet(
-  tweetText: string
+  tweetText: string,
+  ogpImageUrl?: string
 ): Promise<{ success: boolean; tweetId: string | null; error: string | null }> {
   const hasConfig =
     process.env.TWITTER_API_KEY &&
@@ -64,7 +65,24 @@ export async function postBuzzTweet(
 
   const client = getTwitterClient();
   try {
-    const { data } = await client.readWrite.v2.tweet(tweetText);
+    let mediaId: string | undefined;
+
+    if (ogpImageUrl) {
+      try {
+        const imgRes = await fetch(ogpImageUrl);
+        if (imgRes.ok) {
+          const buffer = Buffer.from(await imgRes.arrayBuffer());
+          mediaId = await client.v1.uploadMedia(buffer, { mimeType: "image/png" });
+        }
+      } catch (e) {
+        console.warn("OGP image upload failed, posting without image:", e);
+      }
+    }
+
+    const { data } = await client.readWrite.v2.tweet({
+      text: tweetText,
+      ...(mediaId ? { media: { media_ids: [mediaId] } } : {}),
+    });
     return { success: true, tweetId: data.id, error: null };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
