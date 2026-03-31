@@ -33,12 +33,6 @@ export default function Header() {
             >
               で、どうなるの？
             </span>
-            <span
-              className="hidden sm:inline text-[11px] tracking-wider"
-              style={{ color: "var(--text-muted)" }}
-            >
-              やわらかニュース
-            </span>
           </div>
         </Link>
         <div className="flex items-center gap-3">
