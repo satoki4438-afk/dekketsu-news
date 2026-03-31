@@ -87,6 +87,15 @@ export async function getLatestArticles(limit = 6): Promise<Article[]> {
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
 }
 
+export async function getAllArticles(): Promise<Article[]> {
+  const snapshot = await db
+    .collection("articles")
+    .orderBy("publishedAt", "desc")
+    .get();
+
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
+}
+
 export async function getArticlesByCategory(
   category: string,
   limit = 6
@@ -96,6 +105,16 @@ export async function getArticlesByCategory(
     .where("category", "==", category)
     .orderBy("publishedAt", "desc")
     .limit(limit)
+    .get();
+
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
+}
+
+export async function getAllArticlesByCategory(category: string): Promise<Article[]> {
+  const snapshot = await db
+    .collection("articles")
+    .where("category", "==", category)
+    .orderBy("publishedAt", "desc")
     .get();
 
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));

@@ -1,4 +1,4 @@
-import { getLatestArticles, getArticlesByCategory } from "@/lib/firestore";
+import { getAllArticles, getAllArticlesByCategory } from "@/lib/firestore";
 import ArticleCard from "@/components/ArticleCard";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -7,6 +7,8 @@ export const revalidate = 3600;
 
 const CATEGORIES = ["全部", "経済", "政治", "社会", "国際", "生活"] as const;
 type Category = (typeof CATEGORIES)[number];
+
+const PAGE_SIZE = 12;
 
 export default async function Home({
   searchParams,
@@ -22,10 +24,19 @@ export default async function Home({
     ? (categoryParam as Category)
     : "全部";
 
-  const articles =
+  const pageParam = typeof params.page === "string" ? parseInt(params.page, 10) : 1;
+  const currentPage = Number.isFinite(pageParam) && pageParam >= 1 ? pageParam : 1;
+
+  const allArticles =
     activeCategory === "全部"
-      ? await getLatestArticles(12)
-      : await getArticlesByCategory(activeCategory, 12).catch(() => []);
+      ? await getAllArticles()
+      : await getAllArticlesByCategory(activeCategory).catch(() => []);
+
+  const totalCount = allArticles.length;
+  const offset = (currentPage - 1) * PAGE_SIZE;
+  const articles = allArticles.slice(offset, offset + PAGE_SIZE);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const today = new Date().toLocaleDateString("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -33,6 +44,14 @@ export default async function Home({
     month: "long",
     day: "numeric",
   });
+
+  function pageHref(page: number) {
+    const q = new URLSearchParams();
+    if (activeCategory !== "全部") q.set("category", activeCategory);
+    if (page > 1) q.set("page", String(page));
+    const qs = q.toString();
+    return qs ? `/?${qs}` : "/";
+  }
 
   return (
     <>
@@ -93,11 +112,60 @@ export default async function Home({
                   <p className="text-sm mt-2">毎朝6時に自動更新されます</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {articles.map((article) => (
-                    <ArticleCard key={article.id} article={article} />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {articles.map((article) => (
+                      <ArticleCard key={article.id} article={article} />
+                    ))}
+                  </div>
+
+                  {/* ページネーション */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-3 mt-10">
+                      {currentPage > 1 ? (
+                        <a
+                          href={pageHref(currentPage - 1)}
+                          className="px-5 py-2 rounded-full text-sm font-medium border transition-colors"
+                          style={{
+                            background: "var(--surface)",
+                            color: "var(--text)",
+                            borderColor: "var(--border)",
+                          }}
+                        >
+                          ← 前のページ
+                        </a>
+                      ) : (
+                        <span className="px-5 py-2 rounded-full text-sm font-medium border opacity-30 cursor-default"
+                          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
+                          ← 前のページ
+                        </span>
+                      )}
+
+                      <span className="text-sm" style={{ color: "var(--text-muted)" }}>
+                        {currentPage} / {totalPages}
+                      </span>
+
+                      {currentPage < totalPages ? (
+                        <a
+                          href={pageHref(currentPage + 1)}
+                          className="px-5 py-2 rounded-full text-sm font-medium border transition-colors"
+                          style={{
+                            background: "var(--surface)",
+                            color: "var(--text)",
+                            borderColor: "var(--border)",
+                          }}
+                        >
+                          次のページ →
+                        </a>
+                      ) : (
+                        <span className="px-5 py-2 rounded-full text-sm font-medium border opacity-30 cursor-default"
+                          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
+                          次のページ →
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
             <Sidebar />
