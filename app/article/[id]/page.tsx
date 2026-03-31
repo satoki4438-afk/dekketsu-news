@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getArticleById, getRelatedArticles } from "@/lib/firestore";
+import { getArticleById, getRelatedArticles, getAdjacentArticles } from "@/lib/firestore";
 import ArticleFull from "@/components/ArticleFull";
 import ArticleCard from "@/components/ArticleCard";
 import Header from "@/components/Header";
@@ -20,7 +20,7 @@ export async function generateMetadata({
   const article = await getArticleById(id);
   if (!article) return { title: "記事が見つかりません" };
 
-  const desc = (article.three_points || article.fact || "").split("\n")[0];
+  const desc = (article.three_points || article.fact || "").replace(/<[^>]*>/g, "").split("\n")[0];
   return {
     title: `${article.title} | で、どうなるの？`,
     description: desc,
@@ -40,7 +40,16 @@ export default async function ArticlePage({
   const article = await getArticleById(id);
   if (!article) notFound();
 
-  const related = await getRelatedArticles(article.category, article.id, 3).catch(() => []);
+  const [related, adjacent] = await Promise.all([
+    getRelatedArticles(article.category, article.id, 3).catch(() => []),
+    getAdjacentArticles(article.createdAt).catch(() => ({ newer: null, older: null })),
+  ]);
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app";
+  const articleUrl = `${baseUrl}/article/${article.id}`;
+  const shareTitle = article.title.replace(/<[^>]*>/g, "");
+  const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${shareTitle}\n${articleUrl}`)}&hashtags=でどうなるの`;
+  const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(articleUrl)}`;
 
   return (
     <>
@@ -69,6 +78,62 @@ export default async function ArticlePage({
           <div className="mt-6 flex justify-center">
             <FollowButton articleId={article.id} />
           </div>
+
+          {/* シェアボタン */}
+          <div className="mt-4 flex justify-center gap-3">
+            <a
+              href={xShareUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-opacity hover:opacity-80"
+              style={{ background: "#000", color: "#fff", border: "1px solid #333" }}
+            >
+              𝕏 ポスト
+            </a>
+            <a
+              href={lineShareUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-opacity hover:opacity-80"
+              style={{ background: "#06C755", color: "#fff" }}
+            >
+              LINE
+            </a>
+          </div>
+
+          {/* 前後ナビ */}
+          {(adjacent.newer || adjacent.older) && (
+            <div className="mt-10 grid grid-cols-2 gap-3">
+              <div>
+                {adjacent.newer && (
+                  <Link
+                    href={`/article/${adjacent.newer.id}`}
+                    className="flex flex-col gap-1 border rounded-xl p-4 transition-all hover:border-[rgba(245,200,66,0.3)] hover:bg-[#1e1e1e]"
+                    style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+                  >
+                    <span className="text-[10px] font-bold" style={{ color: "var(--accent)" }}>← 新しい記事</span>
+                    <span className="text-[12px] line-clamp-2" style={{ color: "var(--text)" }}>
+                      {adjacent.newer.emoji} {adjacent.newer.title.replace(/<[^>]*>/g, "")}
+                    </span>
+                  </Link>
+                )}
+              </div>
+              <div>
+                {adjacent.older && (
+                  <Link
+                    href={`/article/${adjacent.older.id}`}
+                    className="flex flex-col gap-1 border rounded-xl p-4 transition-all hover:border-[rgba(245,200,66,0.3)] hover:bg-[#1e1e1e] text-right"
+                    style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+                  >
+                    <span className="text-[10px] font-bold" style={{ color: "var(--accent)" }}>古い記事 →</span>
+                    <span className="text-[12px] line-clamp-2" style={{ color: "var(--text)" }}>
+                      {adjacent.older.emoji} {adjacent.older.title.replace(/<[^>]*>/g, "")}
+                    </span>
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* 関連記事 */}
           {related.length > 0 && (

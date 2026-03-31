@@ -453,9 +453,10 @@ export default function ArticleFull({ article }: { article: Article }) {
       {article.related_keywords?.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-4">
           {article.related_keywords.map((kw, i) => (
-            <span
+            <a
               key={i}
-              className="text-[11px] px-2 py-1 rounded-full border"
+              href={`/search?q=${encodeURIComponent(kw)}`}
+              className="text-[11px] px-2 py-1 rounded-full border transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
               style={{
                 color: "var(--text-muted)",
                 background: "var(--surface)",
@@ -463,7 +464,7 @@ export default function ArticleFull({ article }: { article: Article }) {
               }}
             >
               #{kw}
-            </span>
+            </a>
           ))}
         </div>
       )}

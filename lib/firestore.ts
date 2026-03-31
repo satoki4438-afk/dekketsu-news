@@ -123,6 +123,28 @@ export async function getAllArticlesByCategory(category: string): Promise<Articl
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Article));
 }
 
+export async function getAdjacentArticles(createdAt: Timestamp): Promise<{
+  newer: Article | null;
+  older: Article | null;
+}> {
+  const [newerSnap, olderSnap] = await Promise.all([
+    db.collection("articles")
+      .where("createdAt", ">", createdAt)
+      .orderBy("createdAt", "asc")
+      .limit(1)
+      .get(),
+    db.collection("articles")
+      .where("createdAt", "<", createdAt)
+      .orderBy("createdAt", "desc")
+      .limit(1)
+      .get(),
+  ]);
+  return {
+    newer: newerSnap.empty ? null : ({ id: newerSnap.docs[0].id, ...newerSnap.docs[0].data() } as Article),
+    older: olderSnap.empty ? null : ({ id: olderSnap.docs[0].id, ...olderSnap.docs[0].data() } as Article),
+  };
+}
+
 export async function getArticleById(id: string): Promise<Article | null> {
   const doc = await db.collection("articles").doc(id).get();
   if (!doc.exists) return null;
