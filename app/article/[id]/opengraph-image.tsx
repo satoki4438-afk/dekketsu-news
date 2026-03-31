@@ -41,8 +41,7 @@ export default async function Image({
   const category = article?.category ?? "";
   const catColor = CATEGORY_COLORS[category] ?? "#888";
 
-  const fontText = `で、どうなるの？${title}${category}`;
-  const font = await loadFont(fontText);
+  const font = await loadFont(`で、どうなるの？${title}${category}`);
 
   return new ImageResponse(
     (
@@ -55,44 +54,35 @@ export default async function Image({
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "60px 72px",
+          fontFamily: "NotoSansJP",
         }}
       >
         {/* カテゴリ */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-          }}
-        >
-          {category && (
-            <span
-              style={{
-                fontSize: 28,
-                fontWeight: 900,
-                color: catColor,
-                background: `${catColor}22`,
-                padding: "6px 18px",
-                borderRadius: 6,
-                border: `1px solid ${catColor}55`,
-                fontFamily: font ? "NotoSansJP" : "sans-serif",
-              }}
-            >
-              {category}
-            </span>
-          )}
+        <div style={{ display: "flex" }}>
+          <span
+            style={{
+              fontSize: 28,
+              fontWeight: 900,
+              color: catColor,
+              background: `${catColor}22`,
+              padding: "6px 18px",
+              borderRadius: 6,
+              border: `1px solid ${catColor}55`,
+            }}
+          >
+            {category || "ニュース"}
+          </span>
         </div>
 
         {/* タイトル＋絵文字 */}
         <div style={{ display: "flex", alignItems: "flex-start", gap: "32px" }}>
-          <span style={{ fontSize: 110, lineHeight: 1 }}>{emoji}</span>
+          <span style={{ fontSize: 110, lineHeight: "1" }}>{emoji}</span>
           <div
             style={{
               fontSize: title.length > 20 ? 56 : 72,
               fontWeight: 900,
               color: "#f5c842",
-              lineHeight: 1.3,
-              fontFamily: font ? "NotoSansJP" : "sans-serif",
+              lineHeight: "1.3",
               flex: 1,
             }}
           >
@@ -101,14 +91,7 @@ export default async function Image({
         </div>
 
         {/* サイト名 */}
-        <div
-          style={{
-            fontSize: 28,
-            fontWeight: 900,
-            color: "#555",
-            fontFamily: font ? "NotoSansJP" : "sans-serif",
-          }}
-        >
+        <div style={{ fontSize: 28, fontWeight: 900, color: "#555" }}>
           で、どうなるの？
         </div>
       </div>
