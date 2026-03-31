@@ -37,6 +37,13 @@ export default function RootLayout({
       lang="ja"
       className={`${notoSansJP.variable} ${bebasNeue.variable} h-full`}
     >
+      <head>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6249792468762529"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="min-h-full flex flex-col font-sans antialiased">
         {children}
       </body>
