@@ -1,20 +1,17 @@
 import { ImageResponse } from "next/og";
 import { getArticleById } from "@/lib/firestore";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-async function loadFont(text: string): Promise<ArrayBuffer | null> {
+async function loadFont(): Promise<ArrayBuffer | null> {
   try {
-    const css = await fetch(
-      `https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@900&text=${encodeURIComponent(text)}`,
-      { headers: { "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" } }
-    ).then((r) => r.text());
-    const match = css.match(/url\(([^)]+\.woff2)\)/);
-    if (!match) return null;
-    return fetch(match[1]).then((r) => r.arrayBuffer());
+    const data = await readFile(join(process.cwd(), "public/fonts/NotoSansJP-Bold.ttf"));
+    return data.buffer as ArrayBuffer;
   } catch {
     return null;
   }
@@ -41,7 +38,7 @@ export default async function Image({
   const category = article?.category ?? "";
   const catColor = CATEGORY_COLORS[category] ?? "#888";
 
-  const font = await loadFont(`で、どうなるの？${title}${category}`);
+  const font = await loadFont();
 
   return new ImageResponse(
     (
