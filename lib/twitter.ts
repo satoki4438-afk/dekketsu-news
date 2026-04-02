@@ -44,9 +44,10 @@ function buildSingleTweetText(article: Article, baseUrl: string): string {
   const worldLine = world ? `\n🌍 海外：${world}` : "";
   const winnersLine = winner ? `得✅ ${winner}\n` : "";
   const losersLine = loser ? `損❌ ${loser}\n` : "";
-  const actionLine = action ? `\n💡 どう動く？\n→ 💡 ${action}` : "";
+  const actionLine = action ? `→ ${action}` : "";
+  const articleUrl = `${baseUrl}/article/${article.id}`;
 
-  const text = `【${title}】\n\n💥 で、どうなるの？\n→ ${verdict}\n\n🧾 3行ぐらいでわかること\n${threePoints}\n\n🇯🇵 日本：${japan}${worldLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}${actionLine}\n\n今日のやわらかニュース👇\n${baseUrl}\n\n#でどうなるの`;
+  const text = `【${title}】\n\n💥 で、どうなるの？\n→ ${verdict}\n\n📋 3行ぐらいでわかること\n${threePoints}\n\n🇯🇵 日本：${japan}${worldLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}\n💡 どう動く？\n${actionLine}\n\n${articleUrl}\n\n#で、どうなるの`;
   return truncate(text, 2000);
 }
 
