@@ -34,13 +34,19 @@ function selectTopArticle(articles: Article[]): Article {
 function buildSingleTweetText(article: Article, baseUrl: string): string {
   const title = stripHtml(article.title);
   const verdict = stripHtml(article.verdict || article.gap_analysis || "");
+  const threePoints = stripHtml(article.three_points || article.fact || "");
   const articleUrl = `${baseUrl}/article/${article.id}`;
-  const suffix = `\n${articleUrl}\n#でどうなるの`;
-  // タイトル行 + 改行 + verdictを280文字以内に収める
+
   const titleLine = `【${title}】`;
-  const maxVerdictLen = 280 - titleLine.length - suffix.length - 2; // \n×2分
-  const verdictLine = verdict.length > maxVerdictLen ? verdict.slice(0, maxVerdictLen - 1) + "…" : verdict;
-  return `${titleLine}\n${verdictLine}${suffix}`;
+  const suffix = `\n${articleUrl}`;
+  const fixed = titleLine.length + suffix.length + 2; // \n×2分
+  const remaining = 280 - fixed;
+  const verdictMax = Math.floor(remaining * 0.4);
+  const threeMax = remaining - verdictMax;
+  const verdictLine = verdict.length > verdictMax ? verdict.slice(0, verdictMax - 1) + "…" : verdict;
+  const threeLine = threePoints.length > threeMax ? threePoints.slice(0, threeMax - 1) + "…" : threePoints;
+
+  return `${titleLine}\n${verdictLine}\n${threeLine}${suffix}`;
 }
 
 export async function postBuzzTweet(

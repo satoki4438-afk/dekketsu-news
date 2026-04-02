@@ -168,7 +168,7 @@ export default function ArticleFull({ article }: { article: Article }) {
         </div>
       )}
 
-      {/* 📋 3行でわかること */}
+      {/* 📋 3行ぐらいでわかること */}
       <div
         className="rounded-lg p-5 mb-7 border"
         style={{
@@ -181,7 +181,7 @@ export default function ArticleFull({ article }: { article: Article }) {
           className="text-[11px] font-bold tracking-[2px] mb-3"
           style={{ color: "var(--accent)" }}
         >
-          📋 3行でわかること
+          📋 3行ぐらいでわかること
         </div>
         <div
           className="text-sm sm:text-base leading-relaxed whitespace-pre-line"
