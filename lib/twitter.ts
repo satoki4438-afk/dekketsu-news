@@ -31,29 +31,20 @@ function selectTopArticle(articles: Article[]): Article {
   });
 }
 
-/** 最大2000文字のX投稿文を生成（X Premium対応） */
 function buildSingleTweetText(article: Article, baseUrl: string): string {
   const title = stripHtml(article.title);
-  const threePoints = stripHtml(article.three_points || article.fact || "");
-  const japan = stripHtml(article.japan_view);
-  const worldRaw = stripHtml(article.world_view ?? "");
   const verdict = stripHtml(article.verdict || article.gap_analysis || "");
-  const winner = (article.winners ?? []).map(stripHtml).join("、");
-  const loser = (article.losers ?? []).map(stripHtml).join("、");
-  const action = (article.actions ?? []).map(stripHtml).join("\n→ ");
-
-  const worldLine = worldRaw ? `\n🌍 海外：${worldRaw}` : "";
-  const winnersLine = winner ? `得✅ ${winner}\n` : "";
-  const losersLine = loser ? `損❌ ${loser}\n` : "";
-  const actionLine = action ? `💡 どう動く？\n→ ${action}\n\n` : "";
-
-  const text = `━━━━━━━━━━━━━━\n【${title}】\n\n📋 3行でわかること\n${threePoints}\n\n🇯🇵 日本：${japan}${worldLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}\n💥 で、どうなるの？\n→ ${verdict}\n\n${actionLine}今日のやわらかニュース👇\n${baseUrl}\n\n#やわらかニュース\n━━━━━━━━━━━━━━`;
-  return truncate(text, 2000);
+  const articleUrl = `${baseUrl}/article/${article.id}`;
+  const suffix = `\n${articleUrl}\n#でどうなるの`;
+  // タイトル行 + 改行 + verdictを280文字以内に収める
+  const titleLine = `【${title}】`;
+  const maxVerdictLen = 280 - titleLine.length - suffix.length - 2; // \n×2分
+  const verdictLine = verdict.length > maxVerdictLen ? verdict.slice(0, maxVerdictLen - 1) + "…" : verdict;
+  return `${titleLine}\n${verdictLine}${suffix}`;
 }
 
 export async function postBuzzTweet(
-  tweetText: string,
-  ogpImageUrl?: string
+  tweetText: string
 ): Promise<{ success: boolean; tweetId: string | null; error: string | null }> {
   const hasConfig =
     process.env.TWITTER_API_KEY &&
@@ -65,24 +56,8 @@ export async function postBuzzTweet(
 
   const client = getTwitterClient();
   try {
-    let mediaId: string | undefined;
-
-    if (ogpImageUrl) {
-      try {
-        const imgRes = await fetch(ogpImageUrl);
-        if (imgRes.ok) {
-          const buffer = Buffer.from(await imgRes.arrayBuffer());
-          mediaId = await client.v1.uploadMedia(buffer, { mimeType: "image/png" });
-        }
-      } catch (e) {
-        console.warn("OGP image upload failed, posting without image:", e);
-      }
-    }
-
-    const { data } = await client.readWrite.v2.tweet({
-      text: tweetText,
-      ...(mediaId ? { media: { media_ids: [mediaId] } } : {}),
-    });
+    // TODO: 画像アップロードは一時スキップ。テキストのみ投稿で動作確認後に再実装
+    const { data } = await client.readWrite.v2.tweet({ text: tweetText });
     return { success: true, tweetId: data.id, error: null };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

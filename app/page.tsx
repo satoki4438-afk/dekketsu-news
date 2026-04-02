@@ -37,7 +37,10 @@ export default async function Home({
     activeMonth
       ? getArticlesByMonthCursor(PAGE_SIZE, activeMonth, afterMs, category)
       : getArticlesCursor(PAGE_SIZE, afterMs, category)
-  ).catch(() => ({ articles: [], hasMore: false, lastMs: null }));
+  ).catch((err) => {
+    console.error("[page] Firestore query failed:", err);
+    return { articles: [], hasMore: false, lastMs: null };
+  });
 
   const today = new Date().toLocaleDateString("ja-JP", {
     timeZone: "Asia/Tokyo",

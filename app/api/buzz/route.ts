@@ -26,11 +26,8 @@ export async function GET(request: NextRequest) {
     const { articleId, text } = await generateBuzzTweet(articles, baseUrl);
     console.log(`Buzz tweet for article ${articleId}:\n${text}`);
 
-    // OGP画像URL（Next.jsが /article/[id]/opengraph-image で提供）
-    const ogpImageUrl = `${baseUrl}/article/${articleId}/opengraph-image`;
-
-    // X に投稿（OGP画像添付）
-    const result = await postBuzzTweet(text, ogpImageUrl);
+    // X に投稿
+    const result = await postBuzzTweet(text);
 
     return NextResponse.json({ success: true, articleId, tweetText: text, twitter: result });
   } catch (error) {
