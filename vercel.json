@@ -1,8 +1,9 @@
 {
   "crons": [
-    {"path": "/api/generate", "schedule": "0 21 * * *"},
+    {"path": "/api/generate", "schedule": "0 22 * * *"},
     {"path": "/api/generate", "schedule": "0 9 * * *"},
-    {"path": "/api/generate", "schedule": "0 12 * * *"},
-    {"path": "/api/buzz",     "schedule": "0 3 * * *"}
+    {"path": "/api/buzz",     "schedule": "0 22 * * *"},
+    {"path": "/api/buzz",     "schedule": "0 3 * * *"},
+    {"path": "/api/buzz",     "schedule": "0 13 * * *"}
   ]
 }
