@@ -35,7 +35,7 @@ async function runGeneration() {
   console.log(`Saved ${savedArticles.length} articles to Firestore`);
 
   // ⑤ X（Twitter）に自動投稿（上位1本のみ）
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app";
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app").trim();
   console.log("Posting to Twitter...");
   const twitterResult = await postTopArticleToTwitter(savedArticles, baseUrl);
   console.log(`Twitter result:`, twitterResult);

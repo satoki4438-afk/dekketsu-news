@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: "No articles found" });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app";
+    const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app").trim();
 
     // Claudeにバズ文生成を依頼
     const { articleId, text } = await generateBuzzTweet(articles, baseUrl);
