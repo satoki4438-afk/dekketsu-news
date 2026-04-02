@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllArticles } from "@/lib/firestore";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app";
+const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app").trim();
 
 export const revalidate = 3600;
 

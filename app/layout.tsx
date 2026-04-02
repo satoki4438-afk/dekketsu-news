@@ -19,17 +19,13 @@ export const metadata: Metadata = {
   title: "で、どうなるの？ | やわらかニュース",
   description:
     "毎朝6時にAIが自動収集。日本人の生活・家計に影響するニュースをやさしい言葉で解説します。",
+  metadataBase: new URL("https://www.dounaru.net"),
   openGraph: {
     title: "で、どうなるの？",
     description: "毎朝6時にAIが自動収集。やわらかニュース解説メディア",
     siteName: "で、どうなるの？",
     locale: "ja_JP",
     type: "website",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: ["/og-image.png"],
   },
 };
 
