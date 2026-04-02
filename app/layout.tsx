@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   description:
     "毎朝6時にAIが自動収集。日本人の生活・家計に影響するニュースをやさしい言葉で解説します。",
   metadataBase: new URL("https://www.dounaru.net"),
+  verification: { google: "lI9vKduiKCkYsE1FAJoFbVkcXjw2ZofmUdbQuzPYihY" },
   openGraph: {
     title: "で、どうなるの？",
     description: "毎朝6時にAIが自動収集。やわらかニュース解説メディア",
