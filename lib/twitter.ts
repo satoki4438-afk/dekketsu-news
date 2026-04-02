@@ -35,18 +35,19 @@ function buildSingleTweetText(article: Article, baseUrl: string): string {
   const title = stripHtml(article.title);
   const verdict = stripHtml(article.verdict || article.gap_analysis || "");
   const threePoints = stripHtml(article.three_points || article.fact || "");
-  const articleUrl = `${baseUrl}/article/${article.id}`;
+  const japan = stripHtml(article.japan_view);
+  const world = stripHtml(article.world_view ?? "");
+  const winner = (article.winners ?? []).map(stripHtml).join("、");
+  const loser = (article.losers ?? []).map(stripHtml).join("、");
+  const action = (article.actions ?? []).map(stripHtml).join("\n→ 💡 ");
 
-  const titleLine = `【${title}】`;
-  const suffix = `\n${articleUrl}`;
-  const fixed = titleLine.length + suffix.length + 2; // \n×2分
-  const remaining = 280 - fixed;
-  const verdictMax = Math.floor(remaining * 0.4);
-  const threeMax = remaining - verdictMax;
-  const verdictLine = verdict.length > verdictMax ? verdict.slice(0, verdictMax - 1) + "…" : verdict;
-  const threeLine = threePoints.length > threeMax ? threePoints.slice(0, threeMax - 1) + "…" : threePoints;
+  const worldLine = world ? `\n🌍 海外：${world}` : "";
+  const winnersLine = winner ? `得✅ ${winner}\n` : "";
+  const losersLine = loser ? `損❌ ${loser}\n` : "";
+  const actionLine = action ? `\n💡 どう動く？\n→ 💡 ${action}` : "";
 
-  return `${titleLine}\n${verdictLine}\n${threeLine}${suffix}`;
+  const text = `【${title}】\n\n💥 で、どうなるの？\n→ ${verdict}\n\n🧾 3行ぐらいでわかること\n${threePoints}\n\n🇯🇵 日本：${japan}${worldLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}${actionLine}\n\n今日のやわらかニュース👇\n${baseUrl}\n\n#でどうなるの`;
+  return truncate(text, 2000);
 }
 
 export async function postBuzzTweet(
