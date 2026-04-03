@@ -31,23 +31,34 @@ function selectTopArticle(articles: Article[]): Article {
   });
 }
 
-function buildSingleTweetText(article: Article): string {
+function buildSingleTweetText(article: Article, baseUrl: string): string {
   const title = stripHtml(article.title);
+  const subtitle = stripHtml(article.subtitle ?? "");
   const verdict = stripHtml(article.verdict || article.gap_analysis || "");
   const threePoints = stripHtml(article.three_points || article.fact || "");
   const japan = stripHtml(article.japan_view);
+  const japanSource = stripHtml(article.japan_source ?? "");
   const world = stripHtml(article.world_view ?? "");
+  const worldSource = stripHtml(article.world_source ?? "");
   const winner = (article.winners ?? []).map(stripHtml).join("、");
   const loser = (article.losers ?? []).map(stripHtml).join("、");
-  const action = (article.actions ?? []).map(stripHtml).join("\n→ 💡 ");
+  const impacts = (article.impacts ?? []).map((i) => `${i.icon} ${stripHtml(i.title)}：${stripHtml(i.body)}`).join("\n");
+  const actions = (article.actions ?? []).map(stripHtml).join("\n→ ");
+  const keywords = (article.related_keywords ?? []).map((k) => `#${k}`).join(" ");
 
-  const worldLine = world ? `\n🌍 海外：${world}` : "";
+  const subtitleLine = subtitle ? `${subtitle}\n\n` : "";
+  const japanSourceLine = japanSource ? `（${japanSource}）` : "";
+  const worldLine = world ? `\n🌍 海外：${world}${worldSource ? `（${worldSource}）` : ""}` : "";
   const winnersLine = winner ? `得✅ ${winner}\n` : "";
   const losersLine = loser ? `損❌ ${loser}\n` : "";
-  const actionLine = action ? `→ ${action}` : "";
+  const impactsLine = impacts ? `\n\n🏠 生活への影響\n${impacts}` : "";
+  const actionsLine = actions ? `→ ${actions}` : "";
+  const keywordsLine = keywords ? `\n${keywords}` : "";
 
-  const text = `【${title}】\n\n💥 で、どうなるの？\n→ ${verdict}\n\n📋 3行ぐらいでわかること\n${threePoints}\n\n🇯🇵 日本：${japan}${worldLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}\n💡 どう動く？\n${actionLine}\n\n詳しくはプロフィールのリンクから👆\n\n#で、どうなるの`;
-  return truncate(text, 280);
+  const articleUrl = `${baseUrl}/article/${article.id}`;
+
+  const text = `【${title}】\n${subtitleLine}\n💥 で、どうなるの？\n→ ${verdict}\n\n📋 3行ぐらいでわかること\n${threePoints}\n\n🇯🇵 日本：${japan}${japanSourceLine}${worldLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}${impactsLine}\n\n💡 どう動く？\n${actionsLine}\n\n${articleUrl}\n\n#で、どうなるの${keywordsLine}`;
+  return truncate(text, 25000);
 }
 
 export async function postBuzzTweet(
@@ -82,7 +93,7 @@ export async function postTopArticleToTwitter(
   }
 
   const article = selectTopArticle(articles);
-  const tweetText = buildSingleTweetText(article);
+  const tweetText = buildSingleTweetText(article, baseUrl);
 
   const hasTwitterConfig =
     process.env.TWITTER_API_KEY &&
