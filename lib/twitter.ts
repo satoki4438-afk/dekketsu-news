@@ -31,7 +31,7 @@ function selectTopArticle(articles: Article[]): Article {
   });
 }
 
-function buildSingleTweetText(article: Article, baseUrl: string): string {
+function buildSingleTweetText(article: Article): string {
   const title = stripHtml(article.title);
   const verdict = stripHtml(article.verdict || article.gap_analysis || "");
   const threePoints = stripHtml(article.three_points || article.fact || "");
@@ -45,10 +45,9 @@ function buildSingleTweetText(article: Article, baseUrl: string): string {
   const winnersLine = winner ? `得✅ ${winner}\n` : "";
   const losersLine = loser ? `損❌ ${loser}\n` : "";
   const actionLine = action ? `→ ${action}` : "";
-  const articleUrl = `${baseUrl}/article/${article.id}`;
 
-  const text = `【${title}】\n\n💥 で、どうなるの？\n→ ${verdict}\n\n📋 3行ぐらいでわかること\n${threePoints}\n\n🇯🇵 日本：${japan}${worldLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}\n💡 どう動く？\n${actionLine}\n\n${articleUrl}\n\n#で、どうなるの`;
-  return truncate(text, 2000);
+  const text = `【${title}】\n\n💥 で、どうなるの？\n→ ${verdict}\n\n📋 3行ぐらいでわかること\n${threePoints}\n\n🇯🇵 日本：${japan}${worldLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}\n💡 どう動く？\n${actionLine}\n\n詳しくはプロフィールのリンクから👆\n\n#で、どうなるの`;
+  return truncate(text, 280);
 }
 
 export async function postBuzzTweet(
@@ -83,7 +82,7 @@ export async function postTopArticleToTwitter(
   }
 
   const article = selectTopArticle(articles);
-  const tweetText = buildSingleTweetText(article, baseUrl);
+  const tweetText = buildSingleTweetText(article);
 
   const hasTwitterConfig =
     process.env.TWITTER_API_KEY &&
