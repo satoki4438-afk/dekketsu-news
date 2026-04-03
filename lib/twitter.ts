@@ -44,20 +44,17 @@ function buildSingleTweetText(article: Article, baseUrl: string): string {
   const loser = (article.losers ?? []).map(stripHtml).join("、");
   const impacts = (article.impacts ?? []).map((i) => `${i.icon} ${stripHtml(i.title)}：${stripHtml(i.body)}`).join("\n");
   const actions = (article.actions ?? []).map(stripHtml).join("\n→ ");
-  const keywords = (article.related_keywords ?? []).map((k) => `#${k}`).join(" ");
 
   const subtitleLine = subtitle ? `${subtitle}\n\n` : "";
   const japanSourceLine = japanSource ? `（${japanSource}）` : "";
   const worldLine = world ? `\n🌍 海外：${world}${worldSource ? `（${worldSource}）` : ""}` : "";
   const winnersLine = winner ? `得✅ ${winner}\n` : "";
   const losersLine = loser ? `損❌ ${loser}\n` : "";
-  const impactsLine = impacts ? `\n\n🏠 生活への影響\n${impacts}` : "";
+  const impactsLine = impacts ? `${impacts}` : "";
   const actionsLine = actions ? `→ ${actions}` : "";
-  const keywordsLine = keywords ? `\n${keywords}` : "";
-
   const articleUrl = `${baseUrl}/article/${article.id}`;
 
-  const text = `【${title}】\n${subtitleLine}\n💥 で、どうなるの？\n→ ${verdict}\n\n📋 3行ぐらいでわかること\n${threePoints}\n\n🇯🇵 日本：${japan}${japanSourceLine}${worldLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}${impactsLine}\n\n💡 どう動く？\n${actionsLine}\n\n${articleUrl}\n\n#で、どうなるの${keywordsLine}`;
+  const text = `【${title}】\n${subtitleLine}💥 で、どうなるの？\n→ ${verdict}\n\n📋 3行ぐらいでわかること\n${threePoints}\n\n🌐 日本と海外\n🇯🇵 日本：${japan}${japanSourceLine}${worldLine}\n\n🤔 で、どういうこと？\n${impactsLine}\n\n💰 得する・損する\n${winnersLine}${losersLine}\n💡 じゃあ何かしといた方がいいこと\n${actionsLine}\n\n${articleUrl}\n\n#で、どうなるの`;
   return truncate(text, 25000);
 }
 
