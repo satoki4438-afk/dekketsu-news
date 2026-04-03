@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore, Timestamp, FieldValue } from "firebase-admin/firestore";
 
@@ -264,8 +265,14 @@ export async function getTopFollowedKeywords(limit = 3): Promise<string[]> {
   return [...new Set(keywords)];
 }
 
+const getCachedAllArticles = unstable_cache(
+  () => getAllArticles(),
+  ["all-articles-search"],
+  { revalidate: 3600 }
+);
+
 export async function searchArticles(query: string): Promise<Article[]> {
-  const all = await getAllArticles();
+  const all = await getCachedAllArticles();
   const q = query.toLowerCase();
   return all.filter((a) => {
     const text = [

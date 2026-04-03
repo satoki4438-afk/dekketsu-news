@@ -1,12 +1,19 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { getTopArticlesByViews, getTopArticlesByFollowCount, getArticleMonths } from "@/lib/firestore";
 
+const getSidebarData = unstable_cache(
+  () => Promise.all([
+    getTopArticlesByViews(5),
+    getTopArticlesByFollowCount(5),
+    getArticleMonths(),
+  ]),
+  ["sidebar-data"],
+  { revalidate: 3600 }
+);
+
 export default async function Sidebar() {
-  const [articles, trending, months] = await Promise.all([
-    getTopArticlesByViews(5).catch(() => []),
-    getTopArticlesByFollowCount(5).catch(() => []),
-    getArticleMonths().catch(() => []),
-  ]);
+  const [articles, trending, months] = await getSidebarData().catch(() => [[], [], []] as [never[], never[], never[]]);
 
   return (
     <aside className="flex flex-col gap-5 lg:sticky lg:top-[110px]">
