@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getLatestArticles } from "@/lib/firestore";
-import { generateBuzzTweet } from "@/lib/claude";
-import { postBuzzTweet } from "@/lib/twitter";
+import { postTopArticleToTwitter } from "@/lib/twitter";
 
 export const maxDuration = 60;
 
@@ -14,22 +13,16 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 直近24時間分（最大10本）を取得
     const articles = await getLatestArticles(10);
     if (articles.length === 0) {
       return NextResponse.json({ success: false, error: "No articles found" });
     }
 
     const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app").trim();
+    const result = await postTopArticleToTwitter(articles, baseUrl);
+    console.log(`Buzz tweet:\n${result.tweetText}`);
 
-    // Claudeにバズ文生成を依頼
-    const { articleId, text } = await generateBuzzTweet(articles, baseUrl);
-    console.log(`Buzz tweet for article ${articleId}:\n${text}`);
-
-    // X に投稿
-    const result = await postBuzzTweet(text);
-
-    return NextResponse.json({ success: true, articleId, tweetText: text, twitter: result });
+    return NextResponse.json({ success: result.success, tweetText: result.tweetText, twitter: result });
   } catch (error) {
     console.error("Buzz error:", error);
     return NextResponse.json(
