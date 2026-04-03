@@ -1,0 +1,46 @@
+name: Scheduled API Calls
+
+on:
+  schedule:
+    - cron: '0 22 * * *'  # 朝7時JST → /api/generate
+    - cron: '0 9 * * *'   # 夕18時JST → /api/generate
+    - cron: '0 3 * * *'   # 昼12時JST → /api/buzz
+    - cron: '0 13 * * *'  # 夜22時JST → /api/buzz
+  workflow_dispatch:
+
+jobs:
+  call-generate-morning:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 22 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/generate (朝7時JST)
+        run: |
+          curl -sf -X GET https://www.dounaru.net/api/generate \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  call-generate-evening:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 9 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/generate (夕18時JST)
+        run: |
+          curl -sf -X GET https://www.dounaru.net/api/generate \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  call-buzz-noon:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 3 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/buzz (昼12時JST)
+        run: |
+          curl -sf -X GET https://www.dounaru.net/api/buzz \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  call-buzz-night:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 13 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/buzz (夜22時JST)
+        run: |
+          curl -sf -X GET https://www.dounaru.net/api/buzz \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
