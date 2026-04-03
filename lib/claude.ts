@@ -4,6 +4,12 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+/** <cite>タグをプレーンテキストに変換してからJSONを修復する */
+function stripCiteTags(json: string): string {
+  // <cite index="...">...</cite> → 中身だけ残す
+  return json.replace(/<cite[^>]*>(.*?)<\/cite>/gs, "$1").replace(/<cite[^>]*\/>/g, "");
+}
+
 /** JSON文字列値内の制御文字だけエスケープするstate-machine */
 function repairJsonStrings(json: string): string {
   let result = "";
@@ -219,7 +225,7 @@ web_searchで以下のクエリを検索してください：
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
-    max_tokens: 8000,
+    max_tokens: 16000,
     system: SYSTEM_PROMPT,
     tools: [
       {
@@ -259,8 +265,8 @@ web_searchで以下のクエリを検索してください：
     );
   }
 
-  // state-machine でサニタイズ → 個別フォールバック付きパース
-  const sanitized = repairJsonStrings(cleaned.slice(start, end + 1));
+  // citeタグ除去 → state-machine でサニタイズ → 個別フォールバック付きパース
+  const sanitized = repairJsonStrings(stripCiteTags(cleaned.slice(start, end + 1)));
   const articles = parseJsonArraySafe(sanitized);
   return articles;
 }
