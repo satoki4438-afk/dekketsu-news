@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
-import { getAllArticles } from "@/lib/firestore";
+import { getArticlesForSitemap } from "@/lib/firestore";
 
 const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL || "https://dekketsu-news-sody.vercel.app").trim();
 
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const articles = await getAllArticles().catch(() => []);
+  const articles = await getArticlesForSitemap().catch(() => []);
 
   const articleUrls: MetadataRoute.Sitemap = articles.map((a) => ({
     url: `${BASE_URL}/article/${a.id}`,

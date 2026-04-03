@@ -284,26 +284,53 @@ export async function searchArticles(query: string): Promise<Article[]> {
 }
 
 export async function getArticleMonths(): Promise<{ month: string; label: string; count: number }[]> {
-  // createdAt フィールドだけ取得（効率化）
-  const snapshot = await db
-    .collection("articles")
-    .select("createdAt")
-    .get();
-
   const JST_OFFSET = 9 * 60 * 60 * 1000;
-  const counts: Record<string, number> = {};
 
-  for (const doc of snapshot.docs) {
-    const ts = doc.data().createdAt as Timestamp;
-    if (!ts) continue;
-    const jstDate = new Date(ts.toDate().getTime() + JST_OFFSET);
-    const key = `${jstDate.getUTCFullYear()}-${String(jstDate.getUTCMonth() + 1).padStart(2, "0")}`;
-    counts[key] = (counts[key] ?? 0) + 1;
+  // 最古・最新の記事を1件ずつ取得（2読み取り）
+  const [oldestSnap, newestSnap] = await Promise.all([
+    db.collection("articles").orderBy("createdAt", "asc").limit(1).get(),
+    db.collection("articles").orderBy("createdAt", "desc").limit(1).get(),
+  ]);
+  if (oldestSnap.empty) return [];
+
+  const oldestJst = new Date((oldestSnap.docs[0].data().createdAt as Timestamp).toMillis() + JST_OFFSET);
+  const newestJst = new Date((newestSnap.docs[0].data().createdAt as Timestamp).toMillis() + JST_OFFSET);
+
+  // 月一覧を新しい順に生成
+  const months: { year: number; month: number }[] = [];
+  let y = newestJst.getUTCFullYear();
+  let m = newestJst.getUTCMonth() + 1;
+  const endY = oldestJst.getUTCFullYear();
+  const endM = oldestJst.getUTCMonth() + 1;
+  while (y > endY || (y === endY && m >= endM)) {
+    months.push({ year: y, month: m });
+    if (--m === 0) { m = 12; y--; }
   }
 
-  return Object.entries(counts)
-    .map(([month, count]) => ({ month, label: month.replace("-", "/"), count }))
-    .sort((a, b) => b.month.localeCompare(a.month));
+  // 各月のドキュメント数を aggregation COUNT で取得（1読み取り/月）
+  const results = await Promise.all(
+    months.map(async ({ year, month }) => {
+      const startUtcMs = new Date(year, month - 1, 1).getTime() - JST_OFFSET;
+      const endUtcMs   = new Date(year, month,     1).getTime() - JST_OFFSET;
+      const snap = await db.collection("articles")
+        .where("createdAt", ">=", Timestamp.fromMillis(startUtcMs))
+        .where("createdAt", "<",  Timestamp.fromMillis(endUtcMs))
+        .count()
+        .get();
+      const key = `${year}-${String(month).padStart(2, "0")}`;
+      return { month: key, label: key.replace("-", "/"), count: snap.data().count };
+    })
+  );
+
+  return results.filter((r) => r.count > 0);
+}
+
+export async function getArticlesForSitemap(): Promise<{ id: string; createdAt: Timestamp }[]> {
+  const snapshot = await db.collection("articles").select("createdAt").get();
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    createdAt: doc.data().createdAt as Timestamp,
+  }));
 }
 
 export async function getRecentArticleTitles(limit: number): Promise<string[]> {
