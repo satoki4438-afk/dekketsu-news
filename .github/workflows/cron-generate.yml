@@ -1,0 +1,16 @@
+name: Scheduled Generate
+
+on:
+  schedule:
+    - cron: '0 22 * * *'  # 朝7時JST
+    - cron: '0 9 * * *'   # 夕18時JST
+  workflow_dispatch:
+
+jobs:
+  call-generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/generate
+        run: |
+          curl -sf -X GET https://www.dounaru.net/api/generate \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

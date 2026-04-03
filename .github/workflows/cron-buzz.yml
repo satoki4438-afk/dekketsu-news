@@ -1,0 +1,16 @@
+name: Scheduled Buzz
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # 昼12時JST
+    - cron: '0 13 * * *'  # 夜22時JST
+  workflow_dispatch:
+
+jobs:
+  call-buzz:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/buzz
+        run: |
+          curl -sf -X GET https://www.dounaru.net/api/buzz \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
